@@ -103,6 +103,29 @@ export default function FlightTable() {
     ).length
   }
 
+  const getDestinationColor = (airportCode: string): string => {
+    const colors = [
+      'bg-orange-500',
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-yellow-500',
+      'bg-indigo-500',
+      'bg-red-500',
+      'bg-teal-500',
+      'bg-cyan-500',
+    ]
+
+    // 선택된 항공편들의 고유 목적지 리스트
+    const selected = flights.filter((f) => selectedFlights.has(f.id))
+    const uniqueDestinations = [...new Set(selected.map((f) => f.outbound_arrival_airport))].sort()
+
+    // 현재 목적지의 인덱스를 찾아서 색상 할당
+    const index = uniqueDestinations.indexOf(airportCode)
+    return colors[index % colors.length]
+  }
+
   const getCityName = (airportCode: string): string => {
     return airportMappings[airportCode]?.city || airportCode
   }
@@ -272,7 +295,7 @@ export default function FlightTable() {
                         className="h-4 w-4 cursor-pointer"
                       />
                       {destCount > 1 && (
-                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-full ${getDestinationColor(flight.outbound_arrival_airport)} text-white text-xs font-bold`}>
                           {destCount}
                         </span>
                       )}
