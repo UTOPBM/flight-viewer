@@ -32,4 +32,10 @@ export interface Flight {
   updated_at?: string
 }
 
+export interface AirportMapping {
+  airport_code: string
+  city: string
+  country: string
+}
+
 export type Region = '동북아' | '동남아' | '유럽미주' | 'all'
