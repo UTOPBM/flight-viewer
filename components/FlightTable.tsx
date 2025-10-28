@@ -84,6 +84,25 @@ export default function FlightTable() {
     return `${date.getMonth() + 1}/${date.getDate()}`
   }
 
+  const getDayOfWeek = (dateStr: string): string => {
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    const date = new Date(dateStr)
+    return days[date.getDay()]
+  }
+
+  const formatDateWithDay = (dateStr: string) => {
+    return `${formatDate(dateStr)}(${getDayOfWeek(dateStr)})`
+  }
+
+  const getDestinationCount = (flight: Flight): number => {
+    if (!selectedFlights.has(flight.id)) return 0
+
+    const selected = flights.filter((f) => selectedFlights.has(f.id))
+    return selected.filter(
+      (f) => f.outbound_arrival_airport === flight.outbound_arrival_airport
+    ).length
+  }
+
   const getCityName = (airportCode: string): string => {
     return airportMappings[airportCode]?.city || airportCode
   }
@@ -123,7 +142,8 @@ export default function FlightTable() {
     const lines = selected.map((flight) => {
       const origin = getCityName(flight.outbound_departure_airport)
       const destination = getCityName(flight.outbound_arrival_airport)
-      return `${origin} → ${destination} | ${formatDate(flight.outbound_date)}-${formatDate(flight.inbound_date)} (${flight.trip_nights}박) | ${flight.formatted_price} | ${flight.outbound_carrier} | ${flight.is_direct ? '직항' : '경유'}`
+      const tripDays = `${flight.trip_nights}박${flight.trip_nights + 1}일`
+      return `${origin} → ${destination} | ${formatDateWithDay(flight.outbound_date)}-${formatDateWithDay(flight.inbound_date)} (${tripDays}) | ${flight.formatted_price} | ${flight.outbound_carrier} | ${flight.is_direct ? '직항' : '경유'}`
     })
 
     const text = lines.join('\n')
@@ -232,6 +252,7 @@ export default function FlightTable() {
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredFlights.map((flight) => {
               const isSelected = selectedFlights.has(flight.id)
+              const destCount = getDestinationCount(flight)
               return (
                 <tr
                   key={flight.id}
@@ -243,12 +264,19 @@ export default function FlightTable() {
                   }`}
                 >
                   <td className="px-4 py-3 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => {}}
-                      className="h-4 w-4 cursor-pointer"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="h-4 w-4 cursor-pointer"
+                      />
+                      {destCount > 1 && (
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold">
+                          {destCount}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm">{flight.region}</td>
                   <td className="px-4 py-3 text-sm">
@@ -257,10 +285,10 @@ export default function FlightTable() {
                       {flight.outbound_departure_airport} → {flight.outbound_arrival_airport}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm">
-                    {formatDate(flight.outbound_date)} - {formatDate(flight.inbound_date)}
+                  <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)}
                   </td>
-                  <td className="px-4 py-3 text-sm">{flight.trip_nights}박</td>
+                  <td className="px-4 py-3 text-sm whitespace-nowrap">{flight.trip_nights}박{flight.trip_nights + 1}일</td>
                   <td className="px-4 py-3 text-sm">{flight.outbound_carrier}</td>
                   <td className="px-4 py-3 text-sm">
                     {flight.is_direct ? '✅' : '❌'}
