@@ -22,6 +22,7 @@ interface Advertisement {
 
 export default function AdminAdsPage() {
   const [authenticated, setAuthenticated] = useState(false)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [ads, setAds] = useState<Advertisement[]>([])
   const [loading, setLoading] = useState(false)
@@ -31,25 +32,52 @@ export default function AdminAdsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
-  // 간단한 패스워드 인증
-  const handleLogin = (e: React.FormEvent) => {
+  // Supabase Auth 로그인
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123'
-    if (password === adminPassword) {
-      setAuthenticated(true)
-      localStorage.setItem('admin_auth', 'true')
-      fetchAds()
-    } else {
-      alert('잘못된 패스워드입니다.')
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      })
+
+      if (error) {
+        alert('로그인 실패: ' + error.message)
+        return
+      }
+
+      if (data.session) {
+        setAuthenticated(true)
+        fetchAds()
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      alert('로그인 중 오류가 발생했습니다.')
     }
   }
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('admin_auth')
-    if (isAuth === 'true') {
-      setAuthenticated(true)
-      fetchAds()
+    // 세션 확인
+    const checkSession = async () => {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session) {
+        setAuthenticated(true)
+        fetchAds()
+      }
     }
+
+    checkSession()
   }, [])
 
   const fetchAds = async () => {
@@ -202,9 +230,9 @@ export default function AdminAdsPage() {
       setSelectedFile(null)
       setImagePreview(null)
       fetchAds()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save ad:', err)
-      alert('광고 저장에 실패했습니다. Service Role Key가 설정되어 있는지 확인하세요.')
+      alert('광고 저장에 실패했습니다. ' + (err.message || '다시 시도해주세요.'))
     }
   }
 
@@ -231,9 +259,15 @@ export default function AdminAdsPage() {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    await supabase.auth.signOut()
     setAuthenticated(false)
-    localStorage.removeItem('admin_auth')
+    setEmail('')
     setPassword('')
   }
 
@@ -242,14 +276,28 @@ export default function AdminAdsPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <form onSubmit={handleLogin} className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
           <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">광고 관리자 로그인</h1>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="패스워드를 입력하세요"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            required
-          />
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">이메일</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@example.com"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">비밀번호</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력하세요"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              required
+            />
+          </div>
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
