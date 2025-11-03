@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Flight, Region, AirportMapping } from '@/lib/types'
 
-type QuickFilter = 'all' | 'japan' | 'europe'
+type QuickFilter = 'all' | 'japan' | 'europe' | 'southeast'
 
 export default function FlightTable() {
   const [flights, setFlights] = useState<Flight[]>([])
@@ -68,7 +68,7 @@ export default function FlightTable() {
       filtered = filtered.filter((f) => f.region === region)
     }
 
-    // 빠른 필터 (일본/유럽)
+    // 빠른 필터 (일본/유럽·미주/동남아)
     if (quickFilter === 'japan') {
       // 일본 공항 코드들
       const japanAirports = ['NRT', 'HND', 'KIX', 'FUK', 'OKA', 'NGO', 'CTS']
@@ -77,6 +77,8 @@ export default function FlightTable() {
       )
     } else if (quickFilter === 'europe') {
       filtered = filtered.filter((f) => f.region === '유럽미주')
+    } else if (quickFilter === 'southeast') {
+      filtered = filtered.filter((f) => f.region === '동남아')
     }
 
     // 월 필터
@@ -261,7 +263,17 @@ export default function FlightTable() {
               : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
           }`}
         >
-          🌍 유럽
+          🌍 유럽·미주
+        </button>
+        <button
+          onClick={() => setQuickFilter('southeast')}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            quickFilter === 'southeast'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          🌴 동남아
         </button>
       </div>
 
@@ -350,7 +362,7 @@ export default function FlightTable() {
               <th className="px-4 py-3 text-left text-sm font-medium">날짜</th>
               <th className="px-4 py-3 text-left text-sm font-medium">박수</th>
               <th className="px-4 py-3 text-left text-sm font-medium">직항</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">가격&링크</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">가격 & 링크</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
