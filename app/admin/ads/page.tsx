@@ -406,7 +406,7 @@ export default function AdminAdsPage() {
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={editingAd.is_active !== false}
+                    checked={editingAd.is_active === true}
                     onChange={(e) => setEditingAd({ ...editingAd, is_active: e.target.checked })}
                     className="mr-2"
                   />
