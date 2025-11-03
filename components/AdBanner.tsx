@@ -111,19 +111,34 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-lg shadow-sm ${className}`}>
+    <div className={`relative overflow-hidden rounded-lg shadow-md border border-gray-200 dark:border-gray-700 ${className}`}>
       <button
         onClick={handleClick}
-        className="w-full text-left transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full text-left transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {ad.image_url ? (
-          <img
-            src={ad.image_url}
-            alt={ad.title}
-            className="w-full h-auto"
-          />
+          <div className="bg-gray-100 dark:bg-gray-800 min-h-[90px] flex items-center justify-center">
+            <img
+              src={ad.image_url}
+              alt={ad.title}
+              className="w-full h-auto max-h-[250px] object-contain"
+              onError={(e) => {
+                // 이미지 로드 실패 시 fallback
+                e.currentTarget.style.display = 'none'
+                const parent = e.currentTarget.parentElement
+                if (parent) {
+                  parent.innerHTML = `
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 min-h-[90px] flex flex-col justify-center">
+                      <h3 class="text-xl font-bold mb-2">${ad.title}</h3>
+                      ${ad.description ? `<p class="text-sm opacity-90">${ad.description}</p>` : ''}
+                    </div>
+                  `
+                }
+              }}
+            />
+          </div>
         ) : (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 min-h-[90px] flex flex-col justify-center">
             <h3 className="text-xl font-bold mb-2">{ad.title}</h3>
             {ad.description && (
               <p className="text-sm opacity-90">{ad.description}</p>
@@ -131,7 +146,7 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
           </div>
         )}
       </button>
-      <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+      <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-medium shadow-sm">
         광고
       </div>
     </div>
