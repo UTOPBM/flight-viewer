@@ -6,7 +6,17 @@ import FlightTable from '@/components/FlightTable'
 export default function HomePage() {
   const [darkMode, setDarkMode] = useState(false)
 
+  // 초기 로드 시 localStorage에서 다크모드 설정 불러오기
   useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode')
+    if (savedDarkMode) {
+      setDarkMode(savedDarkMode === 'true')
+    }
+  }, [])
+
+  // 다크모드 변경 시 localStorage 저장 및 DOM 업데이트
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode.toString())
     if (darkMode) {
       document.documentElement.classList.add('dark')
     } else {

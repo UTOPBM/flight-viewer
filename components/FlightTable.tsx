@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Flight, Region, AirportMapping } from '@/lib/types'
 
+type QuickFilter = 'all' | 'japan' | 'europe'
+
 export default function FlightTable() {
   const [flights, setFlights] = useState<Flight[]>([])
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
@@ -14,6 +16,8 @@ export default function FlightTable() {
   const [month, setMonth] = useState<string>('all')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [copyNotification, setCopyNotification] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
 
   useEffect(() => {
     fetchData()
@@ -21,7 +25,7 @@ export default function FlightTable() {
 
   useEffect(() => {
     filterAndSortFlights()
-  }, [flights, region, month, sortOrder])
+  }, [flights, region, month, sortOrder, searchQuery, quickFilter])
 
   const fetchData = async () => {
     setLoading(true)
@@ -59,14 +63,40 @@ export default function FlightTable() {
   const filterAndSortFlights = () => {
     let filtered = [...flights]
 
+    // 지역 필터
     if (region !== 'all') {
       filtered = filtered.filter((f) => f.region === region)
     }
 
+    // 빠른 필터 (일본/유럽)
+    if (quickFilter === 'japan') {
+      // 일본 공항 코드들
+      const japanAirports = ['NRT', 'HND', 'KIX', 'FUK', 'OKA', 'NGO', 'CTS']
+      filtered = filtered.filter((f) =>
+        japanAirports.includes(f.outbound_arrival_airport)
+      )
+    } else if (quickFilter === 'europe') {
+      filtered = filtered.filter((f) => f.region === '유럽미주')
+    }
+
+    // 월 필터
     if (month !== 'all') {
       filtered = filtered.filter((f) => f.departure_month === month)
     }
 
+    // 목적지 검색
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter((f) => {
+        const cityName = getCityName(f.outbound_arrival_airport).toLowerCase()
+        const airportCode = f.outbound_arrival_airport.toLowerCase()
+        const country = airportMappings[f.outbound_arrival_airport]?.country?.toLowerCase() || ''
+
+        return cityName.includes(query) || airportCode.includes(query) || country.includes(query)
+      })
+    }
+
+    // 가격순 정렬
     filtered.sort((a, b) => {
       return sortOrder === 'asc' ? a.price - b.price : b.price - a.price
     })
@@ -92,6 +122,12 @@ export default function FlightTable() {
 
   const formatDateWithDay = (dateStr: string) => {
     return `${formatDate(dateStr)}(${getDayOfWeek(dateStr)})`
+  }
+
+  // 가격 100원 단위로 반올림
+  const formatPrice = (price: number) => {
+    const rounded = Math.round(price / 100) * 100
+    return rounded.toLocaleString() + '원'
   }
 
   const getDestinationCount = (flight: Flight): number => {
@@ -166,7 +202,7 @@ export default function FlightTable() {
       const origin = getCityName(flight.outbound_departure_airport)
       const destination = getCityName(flight.outbound_arrival_airport)
       const tripDays = `${flight.trip_nights}박${flight.trip_nights + 1}일`
-      return `${origin} → ${destination} | ${formatDateWithDay(flight.outbound_date)}-${formatDateWithDay(flight.inbound_date)} (${tripDays}) | ${flight.formatted_price} | ${flight.outbound_carrier} | ${flight.is_direct ? '직항' : '경유'}`
+      return `${origin} → ${destination} | ${formatDateWithDay(flight.outbound_date)}-${formatDateWithDay(flight.inbound_date)} (${tripDays}) | ${formatPrice(flight.price)} | ${flight.is_direct ? '직항' : '경유'}`
     })
 
     const text = lines.join('\n')
@@ -195,7 +231,53 @@ export default function FlightTable() {
         </div>
       )}
 
+      {/* 빠른 필터 버튼 */}
+      <div className="mb-4 flex gap-2">
+        <button
+          onClick={() => setQuickFilter('all')}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            quickFilter === 'all'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          전체
+        </button>
+        <button
+          onClick={() => setQuickFilter('japan')}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            quickFilter === 'japan'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          🇯🇵 일본
+        </button>
+        <button
+          onClick={() => setQuickFilter('europe')}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            quickFilter === 'europe'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          🌍 유럽
+        </button>
+      </div>
+
       <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
+        {/* 목적지 검색 */}
+        <div className="flex-1 min-w-[200px]">
+          <label className="mb-2 block text-sm font-medium">목적지 검색</label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="도시명, 공항코드, 국가..."
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+          />
+        </div>
+
         <div>
           <label className="mb-2 block text-sm font-medium">지역</label>
           <select
@@ -267,7 +349,6 @@ export default function FlightTable() {
               <th className="px-4 py-3 text-left text-sm font-medium">경로</th>
               <th className="px-4 py-3 text-left text-sm font-medium">날짜</th>
               <th className="px-4 py-3 text-left text-sm font-medium">박수</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">항공사</th>
               <th className="px-4 py-3 text-left text-sm font-medium">직항</th>
               <th className="px-4 py-3 text-left text-sm font-medium">가격</th>
             </tr>
@@ -312,7 +393,6 @@ export default function FlightTable() {
                     {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)}
                   </td>
                   <td className="px-4 py-3 text-sm whitespace-nowrap">{flight.trip_nights}박{flight.trip_nights + 1}일</td>
-                  <td className="px-4 py-3 text-sm">{flight.outbound_carrier}</td>
                   <td className="px-4 py-3 text-sm">
                     {flight.is_direct ? '✅' : '❌'}
                   </td>
@@ -324,7 +404,7 @@ export default function FlightTable() {
                       onClick={(e) => e.stopPropagation()}
                       className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                     >
-                      {flight.formatted_price}
+                      {formatPrice(flight.price)}
                     </a>
                   </td>
                 </tr>
