@@ -57,7 +57,7 @@ export default function AdminAdsPage() {
     try {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
       const { data, error } = await supabase
@@ -108,7 +108,7 @@ export default function AdminAdsPage() {
     try {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
       // 파일명 생성 (timestamp + 원본 파일명)
@@ -163,10 +163,14 @@ export default function AdminAdsPage() {
 
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
-      const adData = { ...editingAd, image_url: imageUrl }
+      // 저장할 데이터 준비 (읽기 전용 필드 제외)
+      const { id, created_at, updated_at, click_count, view_count, ...cleanData } = editingAd as any
+      const adData = { ...cleanData, image_url: imageUrl }
+
+      console.log('Saving ad data:', adData)  // 디버그용
 
       if (editingAd.id) {
         // 수정
@@ -175,7 +179,10 @@ export default function AdminAdsPage() {
           .update(adData)
           .eq('id', editingAd.id)
 
-        if (error) throw error
+        if (error) {
+          console.error('Update error:', error)
+          throw error
+        }
         alert('광고가 수정되었습니다.')
       } else {
         // 새로 생성
@@ -183,7 +190,10 @@ export default function AdminAdsPage() {
           .from('advertisements')
           .insert([adData])
 
-        if (error) throw error
+        if (error) {
+          console.error('Insert error:', error)
+          throw error
+        }
         alert('광고가 추가되었습니다.')
       }
 
@@ -204,7 +214,7 @@ export default function AdminAdsPage() {
     try {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
       const { error } = await supabase
