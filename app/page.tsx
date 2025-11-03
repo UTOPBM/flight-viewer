@@ -29,7 +29,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">✈️ 항공권 최저가 모음</h1>
+          <h1 className="text-3xl font-bold">✈️우리들의 여행이 쉬워졌으면 좋겠어</h1>
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="rounded-lg bg-gray-200 dark:bg-gray-700 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"

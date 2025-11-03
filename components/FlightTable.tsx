@@ -350,7 +350,7 @@ export default function FlightTable() {
               <th className="px-4 py-3 text-left text-sm font-medium">날짜</th>
               <th className="px-4 py-3 text-left text-sm font-medium">박수</th>
               <th className="px-4 py-3 text-left text-sm font-medium">직항</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">가격</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">가격&링크</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
