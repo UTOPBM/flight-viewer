@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import FlightTable from '@/components/FlightTable'
+import AdBanner from '@/components/AdBanner'
 
 export default function HomePage() {
   const [darkMode, setDarkMode] = useState(false)
@@ -36,7 +37,14 @@ export default function HomePage() {
             {darkMode ? '☀️ 라이트' : '🌙 다크'}
           </button>
         </div>
+
+        {/* 상단 광고 */}
+        <AdBanner position="banner-top" className="mb-6" />
+
         <FlightTable />
+
+        {/* 하단 광고 */}
+        <AdBanner position="banner-bottom" className="mt-6" />
       </div>
     </div>
   )
