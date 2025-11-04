@@ -70,11 +70,11 @@ export default function FlightTable() {
 
     // 빠른 필터 (일본/유럽·미주/동남아)
     if (quickFilter === 'japan') {
-      // 일본 공항 코드들
-      const japanAirports = ['NRT', 'HND', 'KIX', 'FUK', 'OKA', 'NGO', 'CTS']
-      filtered = filtered.filter((f) =>
-        japanAirports.includes(f.outbound_arrival_airport)
-      )
+      // airport_regions 테이블의 country 정보를 사용
+      filtered = filtered.filter((f) => {
+        const country = airportMappings[f.outbound_arrival_airport]?.country
+        return country === '일본'
+      })
     } else if (quickFilter === 'europe') {
       filtered = filtered.filter((f) => f.region === '유럽미주')
     } else if (quickFilter === 'southeast') {
