@@ -173,7 +173,7 @@ export default function FlightTable() {
     const retDate = flight.inbound_date.replace(/-/g, '').slice(2)
     const origin = flight.outbound_departure_airport.toLowerCase()
     const destination = flight.outbound_arrival_airport.toLowerCase()
-    return `https://www.skyscanner.co.kr/transport/flights/${origin}/${destination}/${depDate}/${retDate}`
+    return `https://www.skyscanner.co.kr/transport/flights/${origin}/${destination}/${depDate}/${retDate}/?adultsv2=1&childrenv2=&cabinclass=economy&rtn=1&preferdirects=false&outboundaltsenabled=false&inboundaltsenabled=false`
   }
 
   const toggleFlightSelection = (flightId: number) => {
