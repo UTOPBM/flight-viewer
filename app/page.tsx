@@ -29,7 +29,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-center justify-between gap-2">
-          <h1 className="text-base sm:text-2xl md:text-3xl font-bold">
+          <h1 className="text-base sm:text-2xl md:text-3xl font-bold text-blue-700 dark:text-white">
             ✈️우리들의 여행이 쉬워졌으면 좋겠어
           </h1>
           <button
