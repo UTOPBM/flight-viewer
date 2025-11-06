@@ -118,7 +118,7 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
       >
         {ad.image_url ? (
           <div className="relative w-full bg-gray-100 dark:bg-gray-800">
-            <div className="aspect-[16/3]">
+            <div className="aspect-[16/3] md:aspect-auto md:h-24 lg:h-28">
               <img
                 src={ad.image_url}
                 alt={ad.title}
@@ -140,7 +140,7 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
             </div>
           </div>
         ) : (
-          <div className="aspect-[16/3] bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 flex flex-col justify-center">
+          <div className="aspect-[16/3] md:aspect-auto md:h-24 lg:h-28 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 flex flex-col justify-center">
             <h3 className="text-xl font-bold mb-2">{ad.title}</h3>
             {ad.description && (
               <p className="text-sm opacity-90">{ad.description}</p>
