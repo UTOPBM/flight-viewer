@@ -277,7 +277,7 @@ export default function FlightTable() {
         </button>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
+      <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-200 dark:border-gray-700">
         {/* 목적지 검색 */}
         <div className="flex-1 min-w-[200px]">
           <label className="mb-2 block text-sm font-medium">목적지 검색</label>
@@ -360,10 +360,10 @@ export default function FlightTable() {
             <div
               key={flight.id}
               onClick={() => toggleFlightSelection(flight.id)}
-              className={`rounded-lg p-4 shadow cursor-pointer transition-colors ${
+              className={`rounded-lg p-4 shadow cursor-pointer transition-colors border ${
                 isSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500'
-                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 border-blue-500'
+                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
               }`}
             >
               {/* 체크박스 & 경로 */}
@@ -423,7 +423,7 @@ export default function FlightTable() {
       </div>
 
       {/* 데스크톱 테이블 레이아웃 */}
-      <div className="hidden md:block overflow-x-auto rounded-lg bg-white dark:bg-gray-800 shadow">
+      <div className="hidden md:block overflow-x-auto rounded-lg bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700">
         <table className="w-full">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
