@@ -234,10 +234,10 @@ export default function FlightTable() {
       )}
 
       {/* 빠른 필터 버튼 */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex gap-2 flex-wrap">
         <button
           onClick={() => setQuickFilter('all')}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             quickFilter === 'all'
               ? 'bg-blue-500 text-white'
               : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -247,7 +247,7 @@ export default function FlightTable() {
         </button>
         <button
           onClick={() => setQuickFilter('japan')}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             quickFilter === 'japan'
               ? 'bg-blue-500 text-white'
               : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -257,7 +257,7 @@ export default function FlightTable() {
         </button>
         <button
           onClick={() => setQuickFilter('europe')}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             quickFilter === 'europe'
               ? 'bg-blue-500 text-white'
               : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -267,7 +267,7 @@ export default function FlightTable() {
         </button>
         <button
           onClick={() => setQuickFilter('southeast')}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
             quickFilter === 'southeast'
               ? 'bg-blue-500 text-white'
               : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -352,7 +352,78 @@ export default function FlightTable() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg bg-white dark:bg-gray-800 shadow">
+      {/* 모바일 카드 레이아웃 */}
+      <div className="md:hidden space-y-3">
+        {filteredFlights.map((flight) => {
+          const isSelected = selectedFlights.has(flight.id)
+          return (
+            <div
+              key={flight.id}
+              onClick={() => toggleFlightSelection(flight.id)}
+              className={`rounded-lg p-4 shadow cursor-pointer transition-colors ${
+                isSelected
+                  ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500'
+                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {/* 체크박스 & 경로 */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}}
+                    className="h-4 w-4 cursor-pointer mt-1"
+                  />
+                  <div>
+                    <div className="font-medium text-base">
+                      {getCityName(flight.outbound_departure_airport)} → {getCityName(flight.outbound_arrival_airport)}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {flight.outbound_departure_airport} → {flight.outbound_arrival_airport}
+                    </div>
+                  </div>
+                </div>
+                {flight.is_direct && (
+                  <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
+                    직항
+                  </span>
+                )}
+              </div>
+
+              {/* 날짜 */}
+              <div className="mb-2 text-sm text-gray-700 dark:text-gray-300">
+                📅 {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)}
+                <span className="ml-2 text-gray-500">({flight.trip_nights}박{flight.trip_nights + 1}일)</span>
+              </div>
+
+              {/* 가격 & 버튼 */}
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {formatPrice(flight.price)}
+                </span>
+                <a
+                  href={getSkyscannerUrl(flight)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  검색 →
+                </a>
+              </div>
+            </div>
+          )
+        })}
+        {filteredFlights.length === 0 && (
+          <div className="p-12 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg">
+            필터 조건에 맞는 항공권이 없습니다.
+          </div>
+        )}
+      </div>
+
+      {/* 데스크톱 테이블 레이아웃 */}
+      <div className="hidden md:block overflow-x-auto rounded-lg bg-white dark:bg-gray-800 shadow">
         <table className="w-full">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
@@ -424,12 +495,6 @@ export default function FlightTable() {
             })}
           </tbody>
         </table>
-
-        {filteredFlights.length === 0 && (
-          <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-            필터 조건에 맞는 항공권이 없습니다.
-          </div>
-        )}
       </div>
     </div>
   )
