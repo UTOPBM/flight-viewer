@@ -357,11 +357,11 @@ export default function FlightTable() {
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium">선택</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">지역</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium">지역</th>
               <th className="px-4 py-3 text-left text-sm font-medium">경로</th>
               <th className="px-4 py-3 text-left text-sm font-medium">날짜</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">박수</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">직항</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left text-sm font-medium">박수</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left text-sm font-medium">직항</th>
               <th className="px-4 py-3 text-left text-sm font-medium">가격 & 링크</th>
             </tr>
           </thead>
@@ -394,7 +394,7 @@ export default function FlightTable() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm">{flight.region}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-sm">{flight.region}</td>
                   <td className="px-4 py-3 text-sm">
                     <div>{getCityName(flight.outbound_departure_airport)} → {getCityName(flight.outbound_arrival_airport)}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -404,8 +404,8 @@ export default function FlightTable() {
                   <td className="px-4 py-3 text-sm whitespace-nowrap">
                     {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)}
                   </td>
-                  <td className="px-4 py-3 text-sm whitespace-nowrap">{flight.trip_nights}박{flight.trip_nights + 1}일</td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="hidden lg:table-cell px-4 py-3 text-sm whitespace-nowrap">{flight.trip_nights}박{flight.trip_nights + 1}일</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-sm">
                     {flight.is_direct ? '✅' : '❌'}
                   </td>
                   <td className="px-4 py-3 text-sm">

@@ -4,6 +4,11 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Flight Viewer',
   description: '항공권 필터링 뷰어',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
 }
 
 export default function RootLayout({
