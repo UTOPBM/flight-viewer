@@ -49,14 +49,16 @@ export async function POST(request: NextRequest) {
   try {
     const payload: WebhookPayload = await request.json()
 
-    // 1. 보안 검증 (나중에 활성화)
-    // const webhookSecret = process.env.WEBHOOK_SECRET
-    // if (payload.webhook_secret !== webhookSecret) {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized: Invalid webhook secret' },
-    //     { status: 401 }
-    //   )
-    // }
+    // 1. 보안 검증
+    const webhookSecret = process.env.WEBHOOK_SECRET
+
+    // 개발 환경에서는 시크릿이 없어도 허용 (테스트 용이)
+    if (webhookSecret && payload.webhook_secret !== webhookSecret) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid webhook secret' },
+        { status: 401 }
+      )
+    }
 
     // 2. 필수 필드 검증
     if (!payload.ad_title || !payload.ad_image_url || !payload.ad_link_url || !payload.ad_position) {

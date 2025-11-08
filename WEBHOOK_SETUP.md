@@ -232,27 +232,36 @@ curl -X POST http://localhost:3000/api/webhook/ad-registration \
 
 ---
 
-## 🔒 보안 (나중에 활성화 예정)
+## 🔒 보안 (활성화됨!)
 
-현재는 **테스트를 위해 보안 검증이 비활성화**되어 있습니다.
+웹훅 보안이 **활성화**되어 있습니다. 올바른 시크릿 키 없이는 광고를 등록할 수 없습니다.
 
-### 운영 환경에서 활성화 방법:
+### 현재 보안 설정:
 
-1. `WEBHOOK_SECRET` 환경변수 설정 (Cloudflare Pages)
-2. `/app/api/webhook/ad-registration/route.ts`에서 주석 제거:
+**시크릿 키**: `9cd1eca1b84cd9d8d21925f7d6c7091d8c98cc4bf2a682108451c077bc83d43f`
 
-```typescript
-// 주석 제거 (현재는 비활성화됨)
-const webhookSecret = process.env.WEBHOOK_SECRET
-if (payload.webhook_secret !== webhookSecret) {
-  return NextResponse.json(
-    { error: 'Unauthorized: Invalid webhook secret' },
-    { status: 401 }
-  )
+⚠️ **주의**: 이 키는 절대 공개하지 마세요! 결제 시스템 설정에만 사용하세요.
+
+### 웹훅 호출 시 필수 항목:
+
+```json
+{
+  "webhook_secret": "9cd1eca1b84cd9d8d21925f7d6c7091d8c98cc4bf2a682108451c077bc83d43f",
+  "ad_title": "광고 제목",
+  "ad_image_url": "https://...",
+  "ad_link_url": "https://...",
+  "ad_position": "banner-top"
 }
 ```
 
-3. 결제 시스템 웹훅 설정 시 `webhook_secret` 필드 추가
+### Cloudflare Pages 환경변수 설정:
+
+1. Cloudflare Pages 대시보드
+2. **Settings** → **Environment variables**
+3. **Production**과 **Preview** 모두에 추가:
+   ```
+   WEBHOOK_SECRET=9cd1eca1b84cd9d8d21925f7d6c7091d8c98cc4bf2a682108451c077bc83d43f
+   ```
 
 ---
 
