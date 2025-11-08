@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Next.js static export 모드에서 API Routes 사용 설정
+export const dynamic = 'force-static'
+
 // Supabase 클라이언트 (Service Role Key 사용 - RLS 우회)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
