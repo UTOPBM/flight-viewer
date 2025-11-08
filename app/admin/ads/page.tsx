@@ -393,19 +393,76 @@ export default function AdminAdsPage() {
                     </span>
                   )}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    권장: 배너 728x90px 또는 300x250px, 최대 5MB
+                    권장: <strong>2560×224px</strong> (레티나 대응) | 최소: 1920×140px | 최대: 5MB
                   </p>
                 </div>
 
                 {/* 이미지 미리보기 */}
                 {(imagePreview || editingAd.image_url) && (
-                  <div className="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg p-2">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">미리보기:</p>
-                    <img
-                      src={imagePreview || editingAd.image_url || ''}
-                      alt="Preview"
-                      className="max-w-full max-h-48 rounded"
-                    />
+                  <div className="space-y-4 mb-3">
+                    {/* 원본 이미지 */}
+                    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-3">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">📷 원본 이미지:</p>
+                      <img
+                        src={imagePreview || editingAd.image_url || ''}
+                        alt="Preview"
+                        className="max-w-full max-h-48 rounded border border-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+
+                    {/* 실제 표시 미리보기 */}
+                    <div className="border border-blue-300 dark:border-blue-600 rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mb-3 font-medium">
+                        👁️ 실제 사이트에서 보이는 모습 (크롭 적용):
+                      </p>
+
+                      {/* 모바일 */}
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">📱 모바일 (70px 높이):</p>
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded overflow-hidden" style={{maxWidth: '375px'}}>
+                          <div className="h-[70px] overflow-hidden">
+                            <img
+                              src={imagePreview || editingAd.image_url || ''}
+                              alt="Mobile preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 태블릿 */}
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">💻 태블릿 (96px 높이):</p>
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded overflow-hidden" style={{maxWidth: '768px'}}>
+                          <div className="h-24 overflow-hidden">
+                            <img
+                              src={imagePreview || editingAd.image_url || ''}
+                              alt="Tablet preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 데스크톱 */}
+                      <div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">🖥️ 데스크톱 (112px 높이):</p>
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded overflow-hidden">
+                          <div className="h-28 overflow-hidden">
+                            <img
+                              src={imagePreview || editingAd.image_url || ''}
+                              alt="Desktop preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-orange-600 dark:text-orange-400 mt-3 flex items-start gap-1">
+                        <span>⚠️</span>
+                        <span>좌우가 잘릴 수 있습니다. 중요한 내용은 이미지 중앙에 배치하세요!</span>
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -443,9 +500,9 @@ export default function AdminAdsPage() {
                     onChange={(e) => setEditingAd({ ...editingAd, position: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    <option value="banner-top">상단 배너 (728x90 권장)</option>
-                    <option value="banner-bottom">하단 배너 (728x90 권장)</option>
-                    <option value="sidebar">사이드바 (300x250 권장)</option>
+                    <option value="banner-top">상단 배너 (70/96/112px 높이)</option>
+                    <option value="banner-bottom">하단 배너 (70/96/112px 높이)</option>
+                    <option value="sidebar">사이드바 (미사용)</option>
                   </select>
                 </div>
 

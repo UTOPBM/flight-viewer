@@ -32,12 +32,22 @@ export default function HomePage() {
           <h1 className="text-base sm:text-2xl md:text-3xl font-bold text-blue-700 dark:text-white">
             ✈️우리들의 여행이 쉬워졌으면 좋겠어
           </h1>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 text-sm sm:px-4 sm:text-base hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </button>
+          <div className="flex gap-2">
+            <a
+              href="https://www.latpeed.com/stores/Hhzpz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base transition-colors whitespace-nowrap flex-shrink-0 font-medium"
+            >
+              💼 광고문의
+            </a>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 text-sm sm:px-4 sm:text-base hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
 
         {/* 상단 광고 */}
