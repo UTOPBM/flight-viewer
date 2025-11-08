@@ -35,11 +35,16 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
+      // 현재 날짜
+      const now = new Date().toISOString()
+
       const { data, error } = await supabase
         .from('advertisements')
         .select('*')
         .eq('position', position)
         .eq('is_active', true)
+        .or(`start_date.is.null,start_date.lte.${now}`)  // 시작일 없거나 시작일 지남
+        .or(`end_date.is.null,end_date.gte.${now}`)      // 종료일 없거나 종료일 안 지남
         .order('priority', { ascending: false })
         .limit(1)
         .single()

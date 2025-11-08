@@ -37,7 +37,7 @@ export default function HomePage() {
               href="https://www.latpeed.com/stores/Hhzpz"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base transition-colors whitespace-nowrap flex-shrink-0 font-medium"
+              className="rounded-lg bg-sky-100 hover:bg-sky-200 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 px-3 py-2 text-sm sm:px-4 sm:text-base transition-colors whitespace-nowrap flex-shrink-0 font-medium border border-sky-300 dark:border-sky-700"
             >
               💼 광고문의
             </a>

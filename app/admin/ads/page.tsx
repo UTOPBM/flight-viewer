@@ -517,6 +517,37 @@ export default function AdminAdsPage() {
                 </div>
               </div>
 
+              {/* 광고 게재 기간 */}
+              <div className="border border-blue-200 dark:border-blue-800 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                <h3 className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-3">📅 광고 게재 기간</h3>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">시작일</label>
+                    <input
+                      type="date"
+                      value={editingAd.start_date ? editingAd.start_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingAd({ ...editingAd, start_date: e.target.value ? `${e.target.value}T00:00:00` : null })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">종료일</label>
+                    <input
+                      type="date"
+                      value={editingAd.end_date ? editingAd.end_date.split('T')[0] : ''}
+                      onChange={(e) => setEditingAd({ ...editingAd, end_date: e.target.value ? `${e.target.value}T23:59:59` : null })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  💡 <strong>비워두면 무제한</strong> 게재됩니다. 월 단위 광고는 시작일/종료일을 설정하세요.
+                </p>
+              </div>
+
               <div>
                 <label className="flex items-center">
                   <input
@@ -564,6 +595,7 @@ export default function AdminAdsPage() {
                 <tr>
                   <th className="px-4 py-3 text-left text-gray-900 dark:text-white">제목</th>
                   <th className="px-4 py-3 text-left text-gray-900 dark:text-white">위치</th>
+                  <th className="px-4 py-3 text-left text-gray-900 dark:text-white">게재기간</th>
                   <th className="px-4 py-3 text-left text-gray-900 dark:text-white">우선순위</th>
                   <th className="px-4 py-3 text-left text-gray-900 dark:text-white">노출/클릭</th>
                   <th className="px-4 py-3 text-left text-gray-900 dark:text-white">상태</th>
@@ -571,10 +603,37 @@ export default function AdminAdsPage() {
                 </tr>
               </thead>
               <tbody>
-                {ads.map((ad) => (
+                {ads.map((ad) => {
+                  const formatDate = (dateStr: string | null) => {
+                    if (!dateStr) return '-'
+                    return new Date(dateStr).toLocaleDateString('ko-KR', {
+                      year: '2-digit',
+                      month: '2-digit',
+                      day: '2-digit'
+                    })
+                  }
+
+                  const isExpired = ad.end_date && new Date(ad.end_date) < new Date()
+                  const isUpcoming = ad.start_date && new Date(ad.start_date) > new Date()
+
+                  return (
                   <tr key={ad.id} className="border-t border-gray-200 dark:border-gray-700">
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{ad.title}</td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{ad.position}</td>
+                    <td className="px-4 py-3 text-xs text-gray-900 dark:text-white">
+                      <div>
+                        {ad.start_date || ad.end_date ? (
+                          <>
+                            <div>{formatDate(ad.start_date)} ~</div>
+                            <div>{formatDate(ad.end_date)}</div>
+                            {isExpired && <span className="text-red-600 dark:text-red-400 font-medium">⏰ 만료</span>}
+                            {isUpcoming && <span className="text-blue-600 dark:text-blue-400 font-medium">📅 예약</span>}
+                          </>
+                        ) : (
+                          <span className="text-green-600 dark:text-green-400 font-medium">∞ 무제한</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{ad.priority}</td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">
                       {ad.view_count} / {ad.click_count}
@@ -610,7 +669,8 @@ export default function AdminAdsPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}
