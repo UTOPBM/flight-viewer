@@ -345,35 +345,13 @@ export default function FlightTable() {
         </div>
 
         <div className="flex items-end gap-3">
-          <div className="flex items-center gap-2">
-            <div className="text-sm">
-              총 <span className="font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개 항공권
-              {selectedFlights.size > 0 && (
-                <span className="ml-2">
-                  | 선택 <span className="font-bold text-green-600 dark:text-green-400">{selectedFlights.size}</span>개
-                </span>
-              )}
-            </div>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="최신 항공권 불러오기"
-            >
-              <svg
-                className={`w-4 h-4 text-gray-600 dark:text-gray-400 ${loading ? 'animate-spin' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </button>
+          <div className="text-sm">
+            총 <span className="font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개 항공권
+            {selectedFlights.size > 0 && (
+              <span className="ml-2">
+                | 선택 <span className="font-bold text-green-600 dark:text-green-400">{selectedFlights.size}</span>개
+              </span>
+            )}
           </div>
           {selectedFlights.size > 0 && (
             <button
