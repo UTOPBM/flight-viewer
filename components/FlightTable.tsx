@@ -23,11 +23,21 @@ export default function FlightTable() {
     fetchData()
   }, [])
 
-  // 탭으로 돌아올 때 자동 업데이트
+  // 탭으로 돌아올 때 자동 업데이트 (30분 쿨다운)
   useEffect(() => {
+    let lastFetchTime = Date.now()
+    const COOLDOWN_MS = 30 * 60 * 1000 // 30분
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchData()
+        const now = Date.now()
+        const timeSinceLastFetch = now - lastFetchTime
+
+        // 마지막 업데이트 후 30분 이상 지났으면 새로고침
+        if (timeSinceLastFetch >= COOLDOWN_MS) {
+          fetchData()
+          lastFetchTime = now
+        }
       }
     }
 
