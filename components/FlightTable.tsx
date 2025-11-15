@@ -221,12 +221,13 @@ export default function FlightTable() {
     // 가격순으로 정렬
     selected.sort((a, b) => a.price - b.price)
 
-    // 클립보드 텍스트 생성
+    // 클립보드 텍스트 생성 (정보 + 링크)
     const lines = selected.map((flight) => {
       const origin = getCityName(flight.outbound_departure_airport)
       const destination = getCityName(flight.outbound_arrival_airport)
       const tripDays = `${flight.trip_nights}박${flight.trip_nights + 1}일`
-      return `${origin} → ${destination} | ${formatDateWithDay(flight.outbound_date)}-${formatDateWithDay(flight.inbound_date)} (${tripDays}) | ${formatPrice(flight.price)} | ${flight.is_direct ? '직항' : '경유'}`
+      const url = getSkyscannerUrl(flight)
+      return `${origin} → ${destination} | ${formatDateWithDay(flight.outbound_date)}-${formatDateWithDay(flight.inbound_date)} (${tripDays}) | ${formatPrice(flight.price)} | ${flight.is_direct ? '직항' : '경유'}\n${url}`
     })
 
     const text = lines.join('\n')
