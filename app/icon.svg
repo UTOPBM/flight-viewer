@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#planeGradient)"/>
+
+  <!-- Airplane -->
+  <g transform="translate(50, 50) rotate(-45)">
+    <!-- Fuselage -->
+    <path d="M -2 -15 L -2 15 L 2 15 L 2 -15 Z" fill="white"/>
+
+    <!-- Wings -->
+    <path d="M -15 -5 L -2 -2 L -2 2 L -15 5 Z" fill="white"/>
+    <path d="M 2 -2 L 15 -5 L 15 5 L 2 2 Z" fill="white"/>
+
+    <!-- Tail -->
+    <path d="M -8 -15 L -2 -15 L -2 -10 Z" fill="white"/>
+    <path d="M 2 -15 L 8 -15 L 2 -10 Z" fill="white"/>
+
+    <!-- Nose -->
+    <circle cx="0" cy="15" r="2" fill="white"/>
+  </g>
+</svg>
