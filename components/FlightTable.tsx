@@ -329,30 +329,17 @@ export default function FlightTable() {
         {/* 주말 포함 필터 */}
         <div>
           <label className="mb-2 block text-sm font-medium">여행 옵션</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setIncludeWeekend(true)}
-              disabled={quickFilter === 'europe' || region === '유럽미주'}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                includeWeekend
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-              } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              주말 포함
-            </button>
-            <button
-              onClick={() => setIncludeWeekend(false)}
-              disabled={quickFilter === 'europe' || region === '유럽미주'}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                !includeWeekend
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-              } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              평일만
-            </button>
-          </div>
+          <button
+            onClick={() => setIncludeWeekend(!includeWeekend)}
+            disabled={quickFilter === 'europe' || region === '유럽미주'}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              includeWeekend
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-500 text-white hover:bg-gray-600'
+            } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {includeWeekend ? '주말 포함' : '평일만'}
+          </button>
           {(quickFilter === 'europe' || region === '유럽미주') && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">항상 주말 포함</p>
           )}
