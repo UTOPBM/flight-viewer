@@ -334,15 +334,12 @@ export default function FlightTable() {
             disabled={quickFilter === 'europe' || region === '유럽미주'}
             className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${
               includeWeekend
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-blue-500 text-white'
                 : 'bg-gray-500 text-white hover:bg-gray-600'
-            } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`}
           >
             {includeWeekend ? '주말 포함' : '평일만'}
           </button>
-          {(quickFilter === 'europe' || region === '유럽미주') && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">항상 주말 포함</p>
-          )}
         </div>
 
         <div>
