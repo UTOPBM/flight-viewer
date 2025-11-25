@@ -388,11 +388,11 @@ export default function FlightTable() {
         </div>
 
         <div className="flex items-end gap-3">
-          <div className="text-sm">
-            총 <span className="font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개 항공권
+          <div className="text-sm whitespace-nowrap">
+            총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개 항공권
             {selectedFlights.size > 0 && (
               <span className="ml-2">
-                | 선택 <span className="font-bold text-green-600 dark:text-green-400">{selectedFlights.size}</span>개
+                | 선택 <span className="inline-block w-[3ch] text-right font-bold text-green-600 dark:text-green-400">{selectedFlights.size}</span>개
               </span>
             )}
           </div>
