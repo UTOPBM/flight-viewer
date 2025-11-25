@@ -332,7 +332,7 @@ export default function FlightTable() {
           <button
             onClick={() => setIncludeWeekend(!includeWeekend)}
             disabled={quickFilter === 'europe' || region === '유럽미주'}
-            className={`${(quickFilter === 'europe' || region === '유럽미주') ? 'w-[130px]' : 'w-[100px]'} py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${
               (quickFilter === 'europe' || region === '유럽미주')
                 ? 'bg-blue-500 text-white cursor-not-allowed'
                 : includeWeekend
@@ -340,9 +340,7 @@ export default function FlightTable() {
                 : 'bg-gray-500 text-white hover:bg-gray-600'
             }`}
           >
-            {(quickFilter === 'europe' || region === '유럽미주')
-              ? '항상 주말 포함'
-              : includeWeekend
+            {(quickFilter === 'europe' || region === '유럽미주') || includeWeekend
               ? '주말 포함'
               : '평일만'}
           </button>
