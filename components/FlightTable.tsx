@@ -332,7 +332,7 @@ export default function FlightTable() {
           <button
             onClick={() => setIncludeWeekend(!includeWeekend)}
             disabled={quickFilter === 'europe' || region === '유럽미주'}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${
               includeWeekend
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-500 text-white hover:bg-gray-600'
