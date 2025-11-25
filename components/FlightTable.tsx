@@ -121,14 +121,17 @@ export default function FlightTable() {
       })
     }
 
-    // 주말 포함 필터
-    filtered = filtered.filter((f) => {
-      if (includeWeekend) {
-        return f.has_weekend === true
-      } else {
-        return f.has_weekend === false
-      }
-    })
+    // 주말 포함 필터 (유럽·미주는 항상 주말 포함이므로 필터링 안함)
+    const isEuropeAmerica = quickFilter === 'europe' || region === '유럽미주'
+    if (!isEuropeAmerica) {
+      filtered = filtered.filter((f) => {
+        if (includeWeekend) {
+          return f.has_weekend === true
+        } else {
+          return f.has_weekend === false
+        }
+      })
+    }
 
     // 가격순 정렬
     filtered.sort((a, b) => {
@@ -326,15 +329,33 @@ export default function FlightTable() {
         {/* 주말 포함 필터 */}
         <div>
           <label className="mb-2 block text-sm font-medium">여행 옵션</label>
-          <label className="flex items-center gap-2 cursor-pointer h-[42px]">
-            <input
-              type="checkbox"
-              checked={includeWeekend}
-              onChange={(e) => setIncludeWeekend(e.target.checked)}
-              className="h-4 w-4 cursor-pointer"
-            />
-            <span className="text-sm">주말 포함만</span>
-          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIncludeWeekend(true)}
+              disabled={quickFilter === 'europe' || region === '유럽미주'}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                includeWeekend
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+              } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              주말 포함
+            </button>
+            <button
+              onClick={() => setIncludeWeekend(false)}
+              disabled={quickFilter === 'europe' || region === '유럽미주'}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                !includeWeekend
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+              } ${(quickFilter === 'europe' || region === '유럽미주') ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              평일만
+            </button>
+          </div>
+          {(quickFilter === 'europe' || region === '유럽미주') && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">항상 주말 포함</p>
+          )}
         </div>
 
         <div>
