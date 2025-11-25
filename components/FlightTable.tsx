@@ -18,6 +18,7 @@ export default function FlightTable() {
   const [copyNotification, setCopyNotification] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
+  const [includeWeekend, setIncludeWeekend] = useState<boolean>(true)
 
   useEffect(() => {
     fetchData()
@@ -47,7 +48,7 @@ export default function FlightTable() {
 
   useEffect(() => {
     filterAndSortFlights()
-  }, [flights, region, month, sortOrder, searchQuery, quickFilter])
+  }, [flights, region, month, sortOrder, searchQuery, quickFilter, includeWeekend])
 
   const fetchData = async () => {
     setLoading(true)
@@ -119,6 +120,15 @@ export default function FlightTable() {
         return cityName.includes(query) || airportCode.includes(query) || country.includes(query)
       })
     }
+
+    // 주말 포함 필터
+    filtered = filtered.filter((f) => {
+      if (includeWeekend) {
+        return f.has_weekend === true
+      } else {
+        return f.has_weekend === false
+      }
+    })
 
     // 가격순 정렬
     filtered.sort((a, b) => {
@@ -302,7 +312,7 @@ export default function FlightTable() {
 
       <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-300 dark:border-gray-700">
         {/* 목적지 검색 */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[150px]">
           <label className="mb-2 block text-sm font-medium">목적지 검색</label>
           <input
             type="text"
@@ -311,6 +321,20 @@ export default function FlightTable() {
             placeholder="도시명, 공항코드, 국가..."
             className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
           />
+        </div>
+
+        {/* 주말 포함 필터 */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">여행 옵션</label>
+          <label className="flex items-center gap-2 cursor-pointer h-[42px]">
+            <input
+              type="checkbox"
+              checked={includeWeekend}
+              onChange={(e) => setIncludeWeekend(e.target.checked)}
+              className="h-4 w-4 cursor-pointer"
+            />
+            <span className="text-sm">주말 포함만</span>
+          </label>
         </div>
 
         <div>
