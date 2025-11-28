@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 interface AdBooking {
@@ -31,6 +31,9 @@ export default function AdminAdsPage() {
   const [bookings, setBookings] = useState<AdBooking[]>([]);
   const [legacyAds, setLegacyAds] = useState<LegacyAd[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Calendar State
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Edit State
   const [editingBooking, setEditingBooking] = useState<AdBooking | null>(null);
@@ -153,7 +156,8 @@ export default function AdminAdsPage() {
     setEditingBooking(booking);
     setEditForm({
       link_url: booking.link_url || '',
-      image_url: booking.image_url || ''
+      image_url: booking.image_url || '',
+      selected_date: booking.selected_date // Add date to form
     });
   };
 
@@ -176,11 +180,26 @@ export default function AdminAdsPage() {
 
   const saveEdit = async () => {
     if (editingBooking) {
+      // Conflict Check if date changed
+      if (editForm.selected_date !== editingBooking.selected_date) {
+        const conflict = bookings.find(b =>
+          b.selected_date === editForm.selected_date &&
+          b.status !== 'rejected' &&
+          b.id !== editingBooking.id
+        );
+
+        if (conflict) {
+          alert(`해당 날짜(${editForm.selected_date})에는 이미 다른 예약이 있습니다.`);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('ad_bookings')
         .update({
           link_url: editForm.link_url,
-          image_url: editForm.image_url
+          image_url: editForm.image_url,
+          selected_date: editForm.selected_date
         })
         .eq('id', editingBooking.id);
 
@@ -220,6 +239,11 @@ export default function AdminAdsPage() {
     }
   };
 
+  // Calendar Helpers
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const today = new Date();
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
@@ -228,6 +252,66 @@ export default function AdminAdsPage() {
           <button onClick={fetchBookings} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
             새로고침
           </button>
+        </div>
+
+        {/* Calendar View */}
+        <div className="bg-white rounded-xl shadow overflow-hidden mb-12 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900">📅 예약 현황 ({format(currentMonth, 'yyyy년 M월')})</h2>
+            <div className="flex gap-2">
+              <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded">◀</button>
+              <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1 text-sm hover:bg-gray-100 rounded">오늘</button>
+              <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded">▶</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200">
+            {['일', '월', '화', '수', '목', '금', '토'].map(day => (
+              <div key={day} className="bg-gray-50 p-2 text-center text-sm font-medium text-gray-500">
+                {day}
+              </div>
+            ))}
+            {eachDayOfInterval({
+              start: startOfWeek(startOfMonth(currentMonth)),
+              end: endOfWeek(endOfMonth(currentMonth))
+            }).map((day, idx) => {
+              const dayBookings = bookings.filter(b => isSameDay(parseISO(b.selected_date), day) && b.status !== 'rejected');
+              const isCurrentMonth = isSameMonth(day, currentMonth);
+              const isToday = isSameDay(day, today);
+
+              return (
+                <div key={day.toISOString()} className={`bg-white min-h-[100px] p-2 ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''}`}>
+                  <div className={`text-sm mb-1 ${isToday ? 'font-bold text-blue-600' : ''}`}>
+                    {format(day, 'd')}
+                  </div>
+                  <div className="space-y-1">
+                    {dayBookings.map(booking => (
+                      <div
+                        key={booking.id}
+                        onClick={() => openEditBooking(booking)}
+                        className={`
+                          text-xs p-1 rounded cursor-pointer truncate transition-colors group relative
+                          ${booking.status === 'approved' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                            booking.status === 'paid' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-gray-100'}
+                        `}
+                      >
+                        {booking.buyer_name}
+
+                        {/* Tooltip */}
+                        <div className="hidden group-hover:block absolute z-10 left-0 top-full mt-1 w-48 bg-black text-white text-xs rounded p-2 shadow-lg">
+                          <p>구매자: {booking.buyer_name}</p>
+                          <p>연락처: {booking.buyer_contact}</p>
+                          <p>상태: {booking.status}</p>
+                          {booking.link_url && <p className="truncate">링크: {booking.link_url}</p>}
+                          <p className="text-gray-400 mt-1">클릭하여 수정</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Section 1: Bookings */}
@@ -395,6 +479,19 @@ export default function AdminAdsPage() {
             </h3>
 
             <div className="space-y-4">
+              {editingBooking && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">날짜 (YYYY-MM-DD)</label>
+                  <input
+                    type="date"
+                    value={editForm.selected_date || ''}
+                    onChange={(e) => setEditForm({ ...editForm, selected_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-red-500 mt-1">⚠️ 날짜 변경 시 다른 예약과 겹치면 저장되지 않습니다.</p>
+                </div>
+              )}
+
               {editingLegacy && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
