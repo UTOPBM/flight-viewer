@@ -17,10 +17,26 @@ interface AdBooking {
   order_id: string | null;
 }
 
+interface LegacyAd {
+  id: string;
+  title: string;
+  position: string;
+  image_url: string | null;
+  link_url: string;
+  is_active: boolean;
+  priority: number;
+}
+
 export default function AdminAdsPage() {
   const [bookings, setBookings] = useState<AdBooking[]>([]);
-  const [legacyAds, setLegacyAds] = useState<any[]>([]);
+  const [legacyAds, setLegacyAds] = useState<LegacyAd[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Edit State
+  const [editingBooking, setEditingBooking] = useState<AdBooking | null>(null);
+  const [editingLegacy, setEditingLegacy] = useState<LegacyAd | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+
   const supabase = createClient();
 
   const fetchBookings = async () => {
@@ -118,6 +134,68 @@ export default function AdminAdsPage() {
     }
   };
 
+  const openEditBooking = (booking: AdBooking) => {
+    setEditingBooking(booking);
+    setEditForm({
+      link_url: booking.link_url || '',
+      image_url: booking.image_url || ''
+    });
+  };
+
+  const openEditLegacy = (ad: LegacyAd) => {
+    setEditingLegacy(ad);
+    setEditForm({
+      title: ad.title,
+      link_url: ad.link_url,
+      image_url: ad.image_url || '',
+      is_active: ad.is_active,
+      priority: ad.priority
+    });
+  };
+
+  const closeEdit = () => {
+    setEditingBooking(null);
+    setEditingLegacy(null);
+    setEditForm({});
+  };
+
+  const saveEdit = async () => {
+    if (editingBooking) {
+      const { error } = await supabase
+        .from('ad_bookings')
+        .update({
+          link_url: editForm.link_url,
+          image_url: editForm.image_url
+        })
+        .eq('id', editingBooking.id);
+
+      if (error) {
+        alert('수정 실패: ' + error.message);
+        return;
+      }
+    } else if (editingLegacy) {
+      const { error } = await supabase
+        .from('advertisements')
+        .update({
+          title: editForm.title,
+          link_url: editForm.link_url,
+          image_url: editForm.image_url,
+          is_active: editForm.is_active,
+          priority: editForm.priority
+        })
+        .eq('id', editingLegacy.id);
+
+      if (error) {
+        alert('수정 실패: ' + error.message);
+        return;
+      }
+    }
+
+    alert('수정되었습니다.');
+    closeEdit();
+    fetchBookings();
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">결제완료 (승인대기)</span>;
@@ -190,30 +268,38 @@ export default function AdminAdsPage() {
                         <div className="text-xs">{booking.buyer_contact}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {booking.status === 'paid' && (
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => handleApprove(booking)}
-                              className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
-                            >
-                              승인
-                            </button>
+                        <div className="flex justify-end gap-2 items-center">
+                          <button
+                            onClick={() => openEditBooking(booking)}
+                            className="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-2 py-1 rounded text-xs border border-gray-200"
+                          >
+                            수정
+                          </button>
+                          {booking.status === 'paid' && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(booking)}
+                                className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs"
+                              >
+                                승인
+                              </button>
+                              <button
+                                onClick={() => handleReject(booking)}
+                                className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs"
+                              >
+                                거절
+                              </button>
+                            </>
+                          )}
+                          {booking.status === 'approved' && (
                             <button
                               onClick={() => handleReject(booking)}
-                              className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
+                              className="text-gray-400 hover:text-red-600 text-xs underline ml-2"
                             >
-                              거절
+                              환불
                             </button>
-                          </div>
-                        )}
-                        {booking.status === 'approved' && (
-                          <button
-                            onClick={() => handleReject(booking)}
-                            className="text-gray-400 hover:text-red-600 text-xs underline"
-                          >
-                            승인 취소 (환불 및 거절)
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -238,6 +324,7 @@ export default function AdminAdsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이미지</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">링크</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -262,6 +349,14 @@ export default function AdminAdsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {ad.is_active ? <span className="text-green-600 font-bold">활성</span> : <span className="text-gray-400">비활성</span>}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => openEditLegacy(ad)}
+                          className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors"
+                        >
+                          수정
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -270,6 +365,90 @@ export default function AdminAdsPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {(editingBooking || editingLegacy) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-fade-in">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              {editingBooking ? '예약 정보 수정' : '기본 광고 수정'}
+            </h3>
+
+            <div className="space-y-4">
+              {editingLegacy && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
+                  <input
+                    type="text"
+                    value={editForm.title || ''}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">링크 URL</label>
+                <input
+                  type="url"
+                  value={editForm.link_url || ''}
+                  onChange={(e) => setEditForm({ ...editForm, link_url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">이미지 URL</label>
+                <input
+                  type="text"
+                  value={editForm.image_url || ''}
+                  onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {editingLegacy && (
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.is_active || false}
+                      onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">활성화</span>
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700">우선순위:</label>
+                    <input
+                      type="number"
+                      value={editForm.priority || 0}
+                      onChange={(e) => setEditForm({ ...editForm, priority: parseInt(e.target.value) })}
+                      className="w-20 px-2 py-1 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeEdit}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                취소
+              </button>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
