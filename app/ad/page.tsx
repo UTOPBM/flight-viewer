@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DayPicker } from 'react-day-picker';
-import { format, addDays, isSameDay } from 'date-fns';
+import { DayPicker, DateRange } from 'react-day-picker';
+import { format, addDays, isSameDay, differenceInDays, eachDayOfInterval } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { createClient } from '@/utils/supabase/client';
 import 'react-day-picker/dist/style.css';
 
 export default function AdBookingPage() {
-  const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>();
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -82,7 +82,7 @@ export default function AdBookingPage() {
   };
 
   const handlePurchase = async () => {
-    if (!selectedDates || selectedDates.length === 0) return;
+    if (!selectedRange?.from || !selectedRange?.to) return;
     if (!imageFile) {
       alert('광고 배너 이미지를 업로드해주세요.');
       return;
@@ -95,9 +95,9 @@ export default function AdBookingPage() {
       const imageUrl = await uploadImage();
       if (!imageUrl) throw new Error('이미지 URL 생성 실패');
 
-      // Sort dates to show range in checkout
-      const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
-      const dateStrings = sortedDates.map(d => format(d, 'yyyy-MM-dd'));
+      // Expand range to array of dates
+      const dates = eachDayOfInterval({ start: selectedRange.from, end: selectedRange.to });
+      const dateStrings = dates.map(d => format(d, 'yyyy-MM-dd'));
 
       // 2. Create Checkout
       const response = await fetch('/api/checkout', {
@@ -134,7 +134,13 @@ export default function AdBookingPage() {
     }
   };
 
-  const totalPrice = (selectedDates?.length || 0) * 10000;
+  const calculateDays = () => {
+    if (!selectedRange?.from || !selectedRange?.to) return 0;
+    return differenceInDays(selectedRange.to, selectedRange.from) + 1;
+  };
+
+  const daysCount = calculateDays();
+  const totalPrice = daysCount * 10000;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -143,7 +149,7 @@ export default function AdBookingPage() {
           {/* Left Side: Calendar */}
           <div className="md:w-1/2 p-8 border-r border-gray-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">날짜 선택</h2>
-            <p className="text-gray-500 text-sm mb-6">광고를 게시할 날짜를 모두 선택해주세요.</p>
+            <p className="text-gray-500 text-sm mb-6">시작일과 종료일을 클릭하여 기간을 선택해주세요.</p>
 
             <div className="flex justify-center">
               <style>{`
@@ -153,9 +159,9 @@ export default function AdBookingPage() {
                 .rdp-button:hover:not([disabled]):not(.rdp-day_selected) { background-color: #F7F7F7; color: #FF385C; }
               `}</style>
               <DayPicker
-                mode="multiple"
-                selected={selectedDates}
-                onSelect={setSelectedDates}
+                mode="range"
+                selected={selectedRange}
+                onSelect={setSelectedRange}
                 disabled={bookedDates}
                 locale={ko}
                 modifiersStyles={{
@@ -234,19 +240,16 @@ export default function AdBookingPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">예약 내역</h2>
 
-              {selectedDates && selectedDates.length > 0 ? (
+              {selectedRange?.from ? (
                 <div className="space-y-4">
                   <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600 font-medium">선택한 날짜</span>
-                      <span className="text-indigo-600 font-bold">{selectedDates.length}일</span>
+                      <span className="text-gray-600 font-medium">선택한 기간</span>
+                      <span className="text-indigo-600 font-bold">{daysCount}일</span>
                     </div>
-                    <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
-                      {selectedDates.sort((a, b) => a.getTime() - b.getTime()).map((date) => (
-                        <span key={date.toISOString()} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                          {format(date, 'M월 d일')}
-                        </span>
-                      ))}
+                    <div className="text-sm text-gray-800">
+                      {format(selectedRange.from, 'yyyy.MM.dd')}
+                      {selectedRange.to && ` ~ ${format(selectedRange.to, 'yyyy.MM.dd')}`}
                     </div>
                   </div>
 
@@ -263,7 +266,7 @@ export default function AdBookingPage() {
                   <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <p>달력에서 날짜를 선택해주세요</p>
+                  <p>달력에서 기간을 선택해주세요</p>
                 </div>
               )}
             </div>
@@ -271,9 +274,9 @@ export default function AdBookingPage() {
             <div className="mt-8">
               <button
                 onClick={handlePurchase}
-                disabled={!selectedDates || selectedDates.length === 0 || loading || uploading || !imageFile}
+                disabled={!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile}
                 className={`w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white 
-                  ${!selectedDates || selectedDates.length === 0 || loading || uploading || !imageFile
+                  ${!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-gradient-to-r from-[#FF385C] to-[#BD1E59] hover:from-[#E00B41] hover:to-[#A3164B] transform hover:-translate-y-0.5 transition-all duration-200'
                   }`}
