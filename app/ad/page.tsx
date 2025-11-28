@@ -116,7 +116,7 @@ export default function AdBookingPage() {
         throw new Error(`Server error: ${response.status} ${errorText}`);
       }
 
-      const { url, error } = await response.json();
+      const { url, error } = await response.json() as { url?: string, error?: string };
 
       if (error) {
         alert('결제 생성 중 오류가 발생했습니다: ' + error);
