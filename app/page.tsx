@@ -34,9 +34,7 @@ export default function HomePage() {
           </h1>
           <div className="flex gap-2">
             <a
-              href="https://www.latpeed.com/stores/Hhzpz"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/ad"
               className="rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 text-sm sm:px-4 sm:text-base hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
             >
               🚀 광고
