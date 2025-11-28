@@ -45,9 +45,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                                 image_url: imageUrl,
                                 link_url: linkUrl // Pass link URL
                             },
-                            variant_quantities: {
-                                [variantId]: dates.length
-                            }
+                            variant_quantities: [
+                                {
+                                    variant_id: parseInt(variantId),
+                                    quantity: dates.length
+                                }
+                            ]
                         }
                     },
                     relationships: {

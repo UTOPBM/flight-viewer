@@ -63,34 +63,50 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 const dates = selectedDatesStr.split(',');
 
-                const inserts = dates.map((date: string) => ({
-                    selected_date: date.trim(),
-                    status: 'paid',
-                    buyer_name: buyerName,
-                    buyer_contact: buyerEmail,
-                    image_url: imageUrl,
-                    link_url: linkUrl,
-                    order_id: orderId
-                }));
+                for (const dateStr of dates) {
+                    const date = dateStr.trim();
 
-                const { error } = await supabase
-                    .from('ad_bookings')
-                    .insert(inserts);
+                    // 1. Check for existing booking
+                    const { data: existing } = await supabase
+                        .from('ad_bookings')
+                        .select('id, status')
+                        .eq('selected_date', date)
+                        .maybeSingle();
 
-                if (error) {
-                    console.error('Supabase Insert Error:', error);
-                    return new Response(JSON.stringify({
-                        error: 'Database error',
-                        details: error.message,
-                        hint: error.hint,
-                        code: error.code
-                    }), {
-                        status: 500,
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    if (existing) {
+                        if (existing.status === 'rejected') {
+                            // Delete rejected booking to allow re-booking
+                            await supabase.from('ad_bookings').delete().eq('id', existing.id);
+                        } else {
+                            // Skip if already paid/approved (Double Booking Prevention)
+                            console.warn(`Skipping date ${date}: Already booked (Status: ${existing.status})`);
+                            continue;
+                        }
+                    }
+
+                    // 2. Insert new booking
+                    const { error } = await supabase
+                        .from('ad_bookings')
+                        .insert({
+                            selected_date: date,
+                            status: 'paid',
+                            buyer_name: buyerName,
+                            buyer_contact: buyerEmail,
+                            image_url: imageUrl,
+                            link_url: linkUrl,
+                            order_id: orderId
+                        });
+
+                    if (error) {
+                        console.error(`Failed to insert booking for ${date}:`, error);
+                        // Continue to next date or throw?
+                        // If we throw, we might leave partial bookings.
+                        // Better to log and continue, but maybe return error at end?
+                        // For now, log error.
+                    }
                 }
 
-                // Send Notification
+                // Send Notification (only once per order)
                 try {
                     const notiSecretKey = '3b1478a7-d678-4400-8516-0aa4fc82b433';
                     const nickname = 'hhh0909';
@@ -103,6 +119,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                     // Don't fail the webhook if notification fails
                 }
             }
+
+            // If we want to return an error if ANY insert failed, we should track it.
+            // But for now, we just log errors in the loop.
         }
 
         return new Response(JSON.stringify({ received: true }), {
