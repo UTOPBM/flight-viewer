@@ -12,6 +12,7 @@ interface AdBooking {
   buyer_name: string;
   buyer_contact: string;
   image_url: string | null;
+  link_url: string | null;
   created_at: string;
   order_id: string | null;
 }
@@ -151,6 +152,7 @@ export default function AdminAdsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이미지</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">링크</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">구매자 정보</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
                   </tr>
@@ -175,6 +177,13 @@ export default function AdminAdsPage() {
                         ) : (
                           <span className="text-gray-400 text-xs">이미지 없음</span>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500 truncate max-w-xs">
+                        {booking.link_url ? (
+                          <a href={booking.link_url} target="_blank" rel="noreferrer" className="hover:underline">
+                            {booking.link_url}
+                          </a>
+                        ) : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="font-medium text-gray-900">{booking.buyer_name}</div>

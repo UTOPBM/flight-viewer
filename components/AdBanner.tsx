@@ -50,7 +50,7 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
           title: 'Sponsored Ad',
           description: null,
           image_url: bookingData.image_url,
-          link_url: '#', // TODO: Add link_url to ad_bookings
+          link_url: bookingData.link_url || '#', // Use link_url from DB
           position: position,
           priority: 100,
           click_count: 0,

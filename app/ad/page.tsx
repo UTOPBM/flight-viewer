@@ -13,6 +13,7 @@ export default function AdBookingPage() {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [linkUrl, setLinkUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const supabase = createClient();
 
@@ -87,6 +88,10 @@ export default function AdBookingPage() {
       alert('광고 배너 이미지를 업로드해주세요.');
       return;
     }
+    if (!linkUrl) {
+      alert('연결할 링크(URL)를 입력해주세요.');
+      return;
+    }
 
     setUploading(true);
 
@@ -107,7 +112,8 @@ export default function AdBookingPage() {
         },
         body: JSON.stringify({
           dates: dateStrings,
-          imageUrl: imageUrl, // Pass image URL
+          imageUrl: imageUrl,
+          linkUrl: linkUrl, // Pass link URL
         }),
       });
 
@@ -262,6 +268,22 @@ export default function AdBookingPage() {
                   <p className="text-sm">이미지를 선택하면<br />미리보기가 표시됩니다.</p>
                 </div>
               )}
+
+              <div className="mt-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  🔗 연결할 링크 (URL)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  배너를 클릭했을 때 이동할 주소를 입력해주세요.
+                </p>
+              </div>
             </div>
 
             {/* Column 3: Summary & Checkout (4 cols) */}

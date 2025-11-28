@@ -48,8 +48,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         const eventName = payload.meta.event_name;
 
         if (eventName === 'order_created') {
-            const selectedDatesStr = payload.meta.custom_data?.selected_dates || payload.meta.custom_data?.selected_date;
+            const selectedDatesStr = payload.meta.custom_data?.selected_dates;
             const imageUrl = payload.meta.custom_data?.image_url;
+            const linkUrl = payload.meta.custom_data?.link_url; // Extract Link URL
             const buyerName = payload.data.attributes.user_name;
             const buyerEmail = payload.data.attributes.user_email;
             const orderId = payload.data.id; // Lemon Squeezy Order ID
@@ -68,6 +69,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                     buyer_name: buyerName,
                     buyer_contact: buyerEmail,
                     image_url: imageUrl,
+                    link_url: linkUrl,
                     order_id: orderId
                 }));
 

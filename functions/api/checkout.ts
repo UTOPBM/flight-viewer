@@ -7,10 +7,10 @@ interface Env {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     try {
         const { request, env } = context;
-        const { dates, imageUrl } = await request.json() as { dates: string[], imageUrl?: string };
+        const { dates, imageUrl, linkUrl } = await request.json() as { dates: string[], imageUrl: string, linkUrl: string };
 
-        if (!dates || dates.length === 0) {
-            return new Response(JSON.stringify({ error: 'Dates are required' }), {
+        if (!dates || dates.length === 0 || !imageUrl || !linkUrl) {
+            return new Response(JSON.stringify({ error: 'Dates, Image URL, and Link URL are required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -42,7 +42,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                         checkout_data: {
                             custom: {
                                 selected_dates: dates.join(','),
-                                image_url: imageUrl
+                                image_url: imageUrl,
+                                link_url: linkUrl // Pass link URL
                             },
                             variant_quantities: {
                                 [variantId]: dates.length
