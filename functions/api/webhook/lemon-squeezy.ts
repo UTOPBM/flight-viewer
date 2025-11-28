@@ -79,7 +79,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
                 if (error) {
                     console.error('Supabase Insert Error:', error);
-                    return new Response(JSON.stringify({ error: 'Database error' }), {
+                    return new Response(JSON.stringify({
+                        error: 'Database error',
+                        details: error.message,
+                        hint: error.hint,
+                        code: error.code
+                    }), {
                         status: 500,
                         headers: { 'Content-Type': 'application/json' }
                     });
