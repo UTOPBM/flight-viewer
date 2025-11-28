@@ -26,6 +26,30 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
 
   useEffect(() => {
     fetchAd()
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const channel = supabase
+      .channel('ad_banner_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ad_bookings'
+        },
+        () => {
+          fetchAd()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [position])
 
   const fetchAd = async () => {

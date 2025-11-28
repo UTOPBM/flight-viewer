@@ -22,7 +22,7 @@ export default function AdBookingPage() {
       const { data, error } = await supabase
         .from('ad_bookings')
         .select('selected_date')
-        .eq('status', 'paid');
+        .in('status', ['paid', 'approved']); // Block both paid and approved
 
       if (error) {
         console.error('Error fetching booked dates:', error);
@@ -42,7 +42,7 @@ export default function AdBookingPage() {
           event: '*',
           schema: 'public',
           table: 'ad_bookings',
-          filter: "status=eq.paid",
+          filter: "status=in.(paid,approved)", // Filter for realtime
         },
         () => {
           fetchBookedDates();

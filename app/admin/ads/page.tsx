@@ -122,33 +122,33 @@ export default function AdminAdsPage() {
       return;
     }
 
-    // 1. Call Refund API
+    // 1. Call Reject API (Refund + DB Update)
     try {
-      const response = await fetch('/api/admin/refund', {
+      const response = await fetch('/api/admin/reject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: booking.order_id })
+        body: JSON.stringify({
+          bookingId: booking.id,
+          orderId: booking.order_id
+        })
       });
 
       if (!response.ok) {
         const errorData = await response.json() as { error?: string };
-        throw new Error(errorData.error || 'Refund failed');
+        throw new Error(errorData.error || 'Reject failed');
       }
 
-      // 2. Update DB Status
-      const { error } = await supabase
-        .from('ad_bookings')
-        .update({ status: 'rejected' })
-        .eq('id', booking.id);
-
-      if (error) throw error;
+      // Optimistic Update
+      setBookings(prev => prev.map(b =>
+        b.id === booking.id ? { ...b, status: 'rejected' } : b
+      ));
 
       alert('환불 및 거절 처리가 완료되었습니다.');
-      fetchBookings();
+      fetchBookings(); // Refresh to be sure
 
     } catch (err: any) {
       console.error(err);
-      alert('환불 처리 중 오류 발생: ' + err.message);
+      alert('거절 처리 중 오류 발생: ' + err.message);
     }
   };
 
