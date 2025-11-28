@@ -244,6 +244,15 @@ export default function AdminAdsPage() {
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const today = new Date();
 
+  const stringToColor = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return '#' + '00000'.substring(0, 6 - c.length) + c;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
@@ -280,33 +289,48 @@ export default function AdminAdsPage() {
               const isToday = isSameDay(day, today);
 
               return (
-                <div key={day.toISOString()} className={`bg-white min-h-[100px] p-2 ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''}`}>
+                <div key={day.toISOString()} className={`bg-white min-h-[120px] p-2 ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''}`}>
                   <div className={`text-sm mb-1 ${isToday ? 'font-bold text-blue-600' : ''}`}>
                     {format(day, 'd')}
                   </div>
                   <div className="space-y-1">
-                    {dayBookings.map(booking => (
-                      <div
-                        key={booking.id}
-                        onClick={() => openEditBooking(booking)}
-                        className={`
-                          text-xs p-1 rounded cursor-pointer truncate transition-colors group relative
-                          ${booking.status === 'approved' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                            booking.status === 'paid' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-gray-100'}
-                        `}
-                      >
-                        {booking.buyer_name}
+                    {dayBookings.map(booking => {
+                      const bgColor = booking.status === 'approved' ? '#dcfce7' : booking.status === 'paid' ? '#fef9c3' : '#f3f4f6';
+                      const textColor = booking.status === 'approved' ? '#166534' : booking.status === 'paid' ? '#854d0e' : '#1f2937';
+                      const borderColor = stringToColor(booking.buyer_name); // Unique color border
 
-                        {/* Tooltip */}
-                        <div className="hidden group-hover:block absolute z-10 left-0 top-full mt-1 w-48 bg-black text-white text-xs rounded p-2 shadow-lg">
-                          <p>구매자: {booking.buyer_name}</p>
-                          <p>연락처: {booking.buyer_contact}</p>
-                          <p>상태: {booking.status}</p>
-                          {booking.link_url && <p className="truncate">링크: {booking.link_url}</p>}
-                          <p className="text-gray-400 mt-1">클릭하여 수정</p>
+                      return (
+                        <div
+                          key={booking.id}
+                          onClick={() => openEditBooking(booking)}
+                          className="text-xs p-1 rounded cursor-pointer truncate transition-all group relative border-l-4 hover:shadow-md"
+                          style={{ backgroundColor: bgColor, color: textColor, borderLeftColor: borderColor }}
+                        >
+                          {booking.buyer_name}
+
+                          {/* Tooltip */}
+                          <div className="hidden group-hover:block absolute z-20 left-0 top-full mt-1 w-64 bg-white text-gray-800 text-xs rounded-lg p-3 shadow-xl border border-gray-200">
+                            <div className="flex gap-3">
+                              {booking.image_url ? (
+                                <img src={booking.image_url} alt="Ad" className="w-16 h-16 object-cover rounded bg-gray-100" />
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center text-gray-400">No Img</div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm mb-1">{booking.buyer_name}</p>
+                                <p className="text-gray-500 mb-1">{booking.buyer_contact}</p>
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className={`w-2 h-2 rounded-full ${booking.status === 'approved' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                                  <span>{booking.status}</span>
+                                </div>
+                                {booking.link_url && <a href={booking.link_url} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline truncate block" onClick={e => e.stopPropagation()}>{booking.link_url}</a>}
+                              </div>
+                            </div>
+                            <p className="text-gray-400 mt-2 text-[10px] text-right">클릭하여 수정</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -515,13 +539,51 @@ export default function AdminAdsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">이미지 URL</label>
-                <input
-                  type="text"
-                  value={editForm.image_url || ''}
-                  onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">이미지</label>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="이미지 URL 입력"
+                    value={editForm.image_url || ''}
+                    onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">또는 파일 업로드:</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        try {
+                          const fileExt = file.name.split('.').pop();
+                          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                          const filePath = `ads/${fileName}`;
+
+                          const { error: uploadError } = await supabase.storage
+                            .from('ad-images')
+                            .upload(filePath, file);
+
+                          if (uploadError) throw uploadError;
+
+                          const { data: { publicUrl } } = supabase.storage
+                            .from('ad-images')
+                            .getPublicUrl(filePath);
+
+                          setEditForm({ ...editForm, image_url: publicUrl });
+                        } catch (error: any) {
+                          alert('이미지 업로드 실패: ' + error.message);
+                        }
+                      }}
+                      className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                  {editForm.image_url && (
+                    <img src={editForm.image_url} alt="Preview" className="h-20 w-auto object-contain rounded border border-gray-200" />
+                  )}
+                </div>
               </div>
 
               {editingLegacy && (
@@ -540,8 +602,8 @@ export default function AdminAdsPage() {
                     <label className="text-sm text-gray-700">우선순위:</label>
                     <input
                       type="number"
-                      value={editForm.priority || 0}
-                      onChange={(e) => setEditForm({ ...editForm, priority: parseInt(e.target.value) })}
+                      value={editForm.priority ?? 0}
+                      onChange={(e) => setEditForm({ ...editForm, priority: parseInt(e.target.value) || 0 })}
                       className="w-20 px-2 py-1 border border-gray-300 rounded-md"
                     />
                   </div>

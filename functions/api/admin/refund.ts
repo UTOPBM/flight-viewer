@@ -34,7 +34,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 'Content-Type': 'application/vnd.api+json',
                 'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify({}) // Empty body for full refund
+            body: JSON.stringify({
+                data: {
+                    type: "orders",
+                    id: orderId.toString(),
+                    attributes: {}
+                }
+            })
         });
 
         if (!response.ok) {
