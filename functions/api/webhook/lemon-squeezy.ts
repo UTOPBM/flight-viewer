@@ -52,6 +52,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             const imageUrl = payload.meta.custom_data?.image_url;
             const buyerName = payload.data.attributes.user_name;
             const buyerEmail = payload.data.attributes.user_email;
+            const orderId = payload.data.id; // Lemon Squeezy Order ID
 
             if (selectedDatesStr) {
                 const supabase = createClient(
@@ -66,7 +67,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                     status: 'paid',
                     buyer_name: buyerName,
                     buyer_contact: buyerEmail,
-                    image_url: imageUrl
+                    image_url: imageUrl,
+                    order_id: orderId
                 }));
 
                 const { error } = await supabase

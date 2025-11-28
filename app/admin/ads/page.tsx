@@ -13,6 +13,7 @@ interface AdBooking {
   buyer_contact: string;
   image_url: string | null;
   created_at: string;
+  order_id: string | null;
 }
 
 export default function AdminAdsPage() {
@@ -40,19 +41,63 @@ export default function AdminAdsPage() {
     fetchBookings();
   }, []);
 
-  const updateStatus = async (id: string, newStatus: 'approved' | 'rejected') => {
-    if (!confirm(`${newStatus === 'approved' ? '승인' : '거절'} 하시겠습니까?`)) return;
+  const handleApprove = async (booking: AdBooking) => {
+    if (!confirm('승인하시겠습니까? 승인 메일 발송 창이 열립니다.')) return;
 
+    // 1. Update DB Status
     const { error } = await supabase
       .from('ad_bookings')
-      .update({ status: newStatus })
-      .eq('id', id);
+      .update({ status: 'approved' })
+      .eq('id', booking.id);
 
     if (error) {
-      console.error('Error updating status:', error);
       alert('상태 업데이트 실패');
-    } else {
-      fetchBookings(); // Refresh list
+      return;
+    }
+
+    // 2. Open Mail Client
+    const subject = `[Flight Viewer] 광고 예약이 승인되었습니다 (${booking.selected_date})`;
+    const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 광고 예약이 승인되었습니다.\n감사합니다.\n\nFlight Viewer 드림`;
+    window.location.href = `mailto:${booking.buyer_contact}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    fetchBookings();
+  };
+
+  const handleReject = async (booking: AdBooking) => {
+    if (!confirm('거절하고 환불 처리하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+    if (!booking.order_id) {
+      alert('주문 ID가 없어서 자동 환불을 할 수 없습니다. 수동으로 처리해주세요.');
+      return;
+    }
+
+    // 1. Call Refund API
+    try {
+      const response = await fetch('/api/admin/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: booking.order_id })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as { error?: string };
+        throw new Error(errorData.error || 'Refund failed');
+      }
+
+      // 2. Update DB Status
+      const { error } = await supabase
+        .from('ad_bookings')
+        .update({ status: 'rejected' })
+        .eq('id', booking.id);
+
+      if (error) throw error;
+
+      alert('환불 및 거절 처리가 완료되었습니다.');
+      fetchBookings();
+
+    } catch (err: any) {
+      console.error(err);
+      alert('환불 처리 중 오류 발생: ' + err.message);
     }
   };
 
@@ -60,7 +105,7 @@ export default function AdminAdsPage() {
     switch (status) {
       case 'paid': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">결제완료 (승인대기)</span>;
       case 'approved': return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">승인됨</span>;
-      case 'rejected': return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">거절됨</span>;
+      case 'rejected': return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold">거절됨 (환불완료)</span>;
       default: return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-bold">{status}</span>;
     }
   };
@@ -121,13 +166,13 @@ export default function AdminAdsPage() {
                         {booking.status === 'paid' && (
                           <div className="flex justify-end gap-2">
                             <button
-                              onClick={() => updateStatus(booking.id, 'approved')}
+                              onClick={() => handleApprove(booking)}
                               className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
                             >
                               승인
                             </button>
                             <button
-                              onClick={() => updateStatus(booking.id, 'rejected')}
+                              onClick={() => handleReject(booking)}
                               className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
                             >
                               거절
@@ -136,10 +181,10 @@ export default function AdminAdsPage() {
                         )}
                         {booking.status === 'approved' && (
                           <button
-                            onClick={() => updateStatus(booking.id, 'rejected')}
+                            onClick={() => handleReject(booking)}
                             className="text-gray-400 hover:text-red-600 text-xs underline"
                           >
-                            승인 취소 (거절로 변경)
+                            승인 취소 (환불 및 거절)
                           </button>
                         )}
                       </td>
