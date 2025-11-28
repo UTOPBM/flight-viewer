@@ -186,11 +186,11 @@ export default function AdBookingPage() {
               </h2>
               <p className="text-gray-500 text-sm mb-6">광고 배너로 사용할 이미지를 업로드하고 미리보기를 확인하세요.</p>
 
-              <div className="mb-6">
-                <label className={`w-full flex flex-col items-center justify-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${imageFile ? 'border-indigo-300 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'}`}>
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <span className="text-3xl mb-3">📁</span>
-                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">클릭하여 업로드</span></p>
+              <div className="mb-4">
+                <label className={`w-full flex flex-col items-center justify-center px-4 py-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${imageFile ? 'border-indigo-300 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'}`}>
+                  <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                    <span className="text-2xl mb-2">📁</span>
+                    <p className="mb-1 text-sm text-gray-500"><span className="font-semibold">클릭하여 업로드</span></p>
                     <p className="text-xs text-gray-400">PNG, JPG (최대 5MB)</p>
                   </div>
                   <input
@@ -206,7 +206,7 @@ export default function AdBookingPage() {
               </div>
 
               {previewUrl ? (
-                <div className="space-y-4 animate-fade-in">
+                <div className="space-y-3 animate-fade-in">
                   <div className="border border-blue-200 rounded-lg p-3 bg-white shadow-sm">
                     <p className="text-xs text-blue-600 mb-2 font-bold flex items-center">
                       👁️ 미리보기 (자동 크롭)
@@ -218,6 +218,15 @@ export default function AdBookingPage() {
                         <div className="bg-gray-100 rounded overflow-hidden mx-auto max-w-[300px]">
                           <div className="h-[70px] overflow-hidden relative">
                             <img alt="Mobile" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover" src={previewUrl} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] text-gray-500 mb-1">태블릿 (96px)</p>
+                        <div className="bg-gray-100 rounded overflow-hidden mx-auto max-w-[340px]">
+                          <div className="h-[80px] overflow-hidden relative">
+                            <img alt="Tablet" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover" src={previewUrl} />
                           </div>
                         </div>
                       </div>
