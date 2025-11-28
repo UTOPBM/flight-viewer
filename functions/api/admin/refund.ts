@@ -25,26 +25,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
         // Lemon Squeezy Refund API
         // Docs: https://docs.lemonsqueezy.com/api/refunds#create-a-refund
-        const response = await fetch('https://api.lemonsqueezy.com/v1/refunds', {
+        // Lemon Squeezy Refund API
+        // Docs: https://docs.lemonsqueezy.com/api/orders#refund-an-order
+        const response = await fetch(`https://api.lemonsqueezy.com/v1/orders/${orderId}/refund`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/vnd.api+json',
                 'Content-Type': 'application/vnd.api+json',
                 'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify({
-                data: {
-                    type: "refunds",
-                    relationships: {
-                        order: {
-                            data: {
-                                type: "orders",
-                                id: orderId.toString()
-                            }
-                        }
-                    }
-                }
-            })
+            body: JSON.stringify({}) // Empty body for full refund
         });
 
         if (!response.ok) {
