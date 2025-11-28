@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+interface Env {
+    LEMON_SQUEEZY_WEBHOOK_SECRET: string;
+    NEXT_PUBLIC_SUPABASE_URL: string;
+    SUPABASE_SERVICE_ROLE_KEY: string;
+}
 
 const verifySignature = async (secret: string, signature: string, body: string) => {
     const encoder = new TextEncoder();
@@ -25,36 +28,37 @@ const verifySignature = async (secret: string, signature: string, body: string) 
     );
 };
 
-export async function POST(request: Request) {
+export const onRequestPost: PagesFunction<Env> = async (context) => {
     try {
+        const { request, env } = context;
         const text = await request.text();
         const signature = request.headers.get('x-signature') || '';
-        const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || '';
+        const secret = env.LEMON_SQUEEZY_WEBHOOK_SECRET || '';
 
         const isValid = await verifySignature(secret, signature, text);
 
         if (!isValid) {
-            return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+            return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
         const payload = JSON.parse(text);
         const eventName = payload.meta.event_name;
 
         if (eventName === 'order_created') {
-            // Check for selected_dates (plural) first, then fallback to selected_date (singular) for backward compatibility
             const selectedDatesStr = payload.meta.custom_data?.selected_dates || payload.meta.custom_data?.selected_date;
             const imageUrl = payload.meta.custom_data?.image_url;
             const buyerName = payload.data.attributes.user_name;
             const buyerEmail = payload.data.attributes.user_email;
 
             if (selectedDatesStr) {
-                // Initialize Supabase Admin Client (Service Role)
                 const supabase = createClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.SUPABASE_SERVICE_ROLE_KEY!
+                    env.NEXT_PUBLIC_SUPABASE_URL,
+                    env.SUPABASE_SERVICE_ROLE_KEY
                 );
 
-                // Handle multiple dates (comma separated)
                 const dates = selectedDatesStr.split(',');
 
                 const inserts = dates.map((date: string) => ({
@@ -71,15 +75,24 @@ export async function POST(request: Request) {
 
                 if (error) {
                     console.error('Supabase Insert Error:', error);
-                    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+                    return new Response(JSON.stringify({ error: 'Database error' }), {
+                        status: 500,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                 }
             }
         }
 
-        return NextResponse.json({ received: true });
+        return new Response(JSON.stringify({ received: true }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
 
     } catch (error) {
         console.error('Webhook error:', error);
-        return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
+        return new Response(JSON.stringify({ error: 'Webhook handler failed' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
-}
+};
