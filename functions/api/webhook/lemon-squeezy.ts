@@ -80,6 +80,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                         headers: { 'Content-Type': 'application/json' }
                     });
                 }
+
+                // Send Notification
+                try {
+                    const notiSecretKey = '3b1478a7-d678-4400-8516-0aa4fc82b433';
+                    const nickname = 'hhh0909';
+                    const title = encodeURIComponent('새로운 광고 예약! 🎉');
+                    const body = encodeURIComponent(`${buyerName}님이 ${selectedDatesStr} 광고를 예약했습니다.`);
+
+                    await fetch(`https://asia-northeast3-noti-lab-production.cloudfunctions.net/api//notification/v1/notification?nickname=${nickname}&title=${title}&body=${body}&secretKey=${notiSecretKey}`);
+                } catch (notiError) {
+                    console.error('Notification Error:', notiError);
+                    // Don't fail the webhook if notification fails
+                }
             }
         }
 
