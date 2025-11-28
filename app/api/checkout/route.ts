@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 export async function POST(request: Request) {
     try {
-        const { date } = await request.json();
+        const { dates } = await request.json(); // Expecting array of dates
 
-        if (!date) {
-            return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+        if (!dates || dates.length === 0) {
+            return NextResponse.json({ error: 'Dates are required' }, { status: 400 });
         }
 
         const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-        const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID; // This is the Product ID (Variant ID)
+        const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
         const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
 
         if (!storeId || !variantId || !apiKey) {
             return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 });
         }
 
+        // Lemon Squeezy Checkout API
         const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
             method: 'POST',
             headers: {
@@ -29,7 +32,10 @@ export async function POST(request: Request) {
                     attributes: {
                         checkout_data: {
                             custom: {
-                                selected_date: date // Pass the date as custom data
+                                selected_dates: dates.join(',') // Pass dates as comma-separated string
+                            },
+                            variant_quantities: {
+                                [variantId]: dates.length // Set quantity based on number of days
                             }
                         }
                     },
