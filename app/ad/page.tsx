@@ -11,6 +11,9 @@ export default function AdBookingPage() {
   const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -51,21 +54,60 @@ export default function AdBookingPage() {
     };
   }, []);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    const fileExt = imageFile.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `ads/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('ad-images')
+      .upload(filePath, imageFile);
+
+    if (uploadError) {
+      throw new Error('이미지 업로드 실패: ' + uploadError.message);
+    }
+
+    const { data } = supabase.storage.from('ad-images').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
   const handlePurchase = async () => {
     if (!selectedDates || selectedDates.length === 0) return;
+    if (!imageFile) {
+      alert('광고 배너 이미지를 업로드해주세요.');
+      return;
+    }
 
-    // Sort dates to show range in checkout
-    const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
-    const dateStrings = sortedDates.map(d => format(d, 'yyyy-MM-dd'));
+    setUploading(true);
 
     try {
+      // 1. Upload Image
+      const imageUrl = await uploadImage();
+      if (!imageUrl) throw new Error('이미지 URL 생성 실패');
+
+      // Sort dates to show range in checkout
+      const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
+      const dateStrings = sortedDates.map(d => format(d, 'yyyy-MM-dd'));
+
+      // 2. Create Checkout
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          dates: dateStrings, // Send array of dates
+          dates: dateStrings,
+          imageUrl: imageUrl, // Pass image URL
         }),
       });
 
@@ -86,7 +128,9 @@ export default function AdBookingPage() {
       }
     } catch (err: any) {
       console.error(err);
-      alert('결제 요청 실패: ' + err.message);
+      alert('처리 중 오류가 발생했습니다: ' + err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -118,6 +162,70 @@ export default function AdBookingPage() {
                   disabled: { color: '#d1d5db', textDecoration: 'line-through' }
                 }}
               />
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="mt-10 pt-8 border-t border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">광고 배너 이미지</h3>
+
+              <div className="mb-4">
+                <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                  <span className="mr-2">📁</span> 이미지 파일 선택
+                  <input
+                    accept="image/*"
+                    className="hidden"
+                    type="file"
+                    onChange={handleImageSelect}
+                  />
+                </label>
+                <p className="text-xs text-gray-500 mt-2">
+                  권장: <strong>2560×224px</strong> (레티나 대응) | 최소: 1920×140px | 최대: 5MB
+                </p>
+              </div>
+
+              {previewUrl && (
+                <div className="space-y-4 mb-3 animate-fade-in">
+                  <div className="border border-gray-300 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-2 font-medium">📷 원본 이미지:</p>
+                    <img alt="Preview" className="max-w-full max-h-48 rounded border border-gray-200 object-contain" src={previewUrl} />
+                  </div>
+
+                  <div className="border border-blue-300 rounded-lg p-3 bg-blue-50">
+                    <p className="text-xs text-blue-700 mb-3 font-medium">👁️ 실제 사이트에서 보이는 모습 (크롭 적용):</p>
+
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-600 mb-1">📱 모바일 (70px 높이):</p>
+                      <div className="bg-gray-100 rounded overflow-hidden max-w-[375px]">
+                        <div className="h-[70px] overflow-hidden">
+                          <img alt="Mobile preview" className="w-full h-full object-cover" src={previewUrl} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-600 mb-1">💻 태블릿 (96px 높이):</p>
+                      <div className="bg-gray-100 rounded overflow-hidden max-w-[768px]">
+                        <div className="h-24 overflow-hidden">
+                          <img alt="Tablet preview" className="w-full h-full object-cover" src={previewUrl} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">🖥️ 데스크톱 (112px 높이):</p>
+                      <div className="bg-gray-100 rounded overflow-hidden">
+                        <div className="h-28 overflow-hidden">
+                          <img alt="Desktop preview" className="w-full h-full object-cover" src={previewUrl} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-orange-600 mt-3 flex items-start gap-1">
+                      <span>⚠️</span><span>좌우가 잘릴 수 있습니다. 중요한 내용은 이미지 중앙에 배치하세요!</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -163,14 +271,14 @@ export default function AdBookingPage() {
             <div className="mt-8">
               <button
                 onClick={handlePurchase}
-                disabled={!selectedDates || selectedDates.length === 0 || loading}
+                disabled={!selectedDates || selectedDates.length === 0 || loading || uploading || !imageFile}
                 className={`w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white 
-                  ${!selectedDates || selectedDates.length === 0 || loading
+                  ${!selectedDates || selectedDates.length === 0 || loading || uploading || !imageFile
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-gradient-to-r from-[#FF385C] to-[#BD1E59] hover:from-[#E00B41] hover:to-[#A3164B] transform hover:-translate-y-0.5 transition-all duration-200'
                   }`}
               >
-                {loading ? '로딩 중...' : '예약하기'}
+                {uploading ? '이미지 업로드 중...' : loading ? '로딩 중...' : '예약하기'}
               </button>
               <p className="mt-3 text-xs text-center text-gray-400">
                 결제는 Lemon Squeezy를 통해 안전하게 처리됩니다.

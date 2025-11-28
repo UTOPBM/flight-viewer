@@ -1,17 +1,39 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 export const runtime = 'edge';
+
+const verifySignature = async (secret: string, signature: string, body: string) => {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['verify']
+    );
+
+    const signatureBuffer = new Uint8Array(
+        signature.match(/[\da-f]{2}/gi)!.map((h) => parseInt(h, 16))
+    );
+
+    return await crypto.subtle.verify(
+        'HMAC',
+        key,
+        signatureBuffer,
+        encoder.encode(body)
+    );
+};
 
 export async function POST(request: Request) {
     try {
         const text = await request.text();
-        const hmac = crypto.createHmac('sha256', process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || '');
-        const digest = Buffer.from(hmac.update(text).digest('hex'), 'utf8');
-        const signature = Buffer.from(request.headers.get('x-signature') || '', 'utf8');
+        const signature = request.headers.get('x-signature') || '';
+        const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET || '';
 
-        if (!crypto.timingSafeEqual(digest, signature)) {
+        const isValid = await verifySignature(secret, signature, text);
+
+        if (!isValid) {
             return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
         }
 
@@ -21,6 +43,7 @@ export async function POST(request: Request) {
         if (eventName === 'order_created') {
             // Check for selected_dates (plural) first, then fallback to selected_date (singular) for backward compatibility
             const selectedDatesStr = payload.meta.custom_data?.selected_dates || payload.meta.custom_data?.selected_date;
+            const imageUrl = payload.meta.custom_data?.image_url;
             const buyerName = payload.data.attributes.user_name;
             const buyerEmail = payload.data.attributes.user_email;
 
@@ -38,7 +61,8 @@ export async function POST(request: Request) {
                     selected_date: date.trim(),
                     status: 'paid',
                     buyer_name: buyerName,
-                    buyer_contact: buyerEmail
+                    buyer_contact: buyerEmail,
+                    image_url: imageUrl
                 }));
 
                 const { error } = await supabase

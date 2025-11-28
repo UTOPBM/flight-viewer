@@ -4,7 +4,7 @@ export const runtime = 'edge';
 
 export async function POST(request: Request) {
     try {
-        const { dates } = await request.json(); // Expecting array of dates
+        const { dates, imageUrl } = await request.json(); // Expecting array of dates and image URL
 
         if (!dates || dates.length === 0) {
             return NextResponse.json({ error: 'Dates are required' }, { status: 400 });
@@ -32,7 +32,8 @@ export async function POST(request: Request) {
                     attributes: {
                         checkout_data: {
                             custom: {
-                                selected_dates: dates.join(',') // Pass dates as comma-separated string
+                                selected_dates: dates.join(','), // Pass dates as comma-separated string
+                                image_url: imageUrl // Pass image URL
                             },
                             variant_quantities: {
                                 [variantId]: dates.length // Set quantity based on number of days
