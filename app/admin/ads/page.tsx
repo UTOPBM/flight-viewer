@@ -88,7 +88,12 @@ export default function AdminAdsPage() {
       return;
     }
 
-    // 2. Open Mail Client
+    // 2. Optimistic Update
+    setBookings(prev => prev.map(b =>
+      b.id === booking.id ? { ...b, status: 'approved' } : b
+    ));
+
+    // 3. Open Mail Client
     const subject = `[Flight Viewer] 광고 예약이 승인되었습니다 (${booking.selected_date})`;
     const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 광고 예약이 승인되었습니다.\n감사합니다.\n\nFlight Viewer 드림`;
 
@@ -96,6 +101,7 @@ export default function AdminAdsPage() {
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${booking.buyer_contact}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(gmailUrl, '_blank');
 
+    // 4. Background Fetch (just in case)
     fetchBookings();
   };
 
@@ -261,7 +267,12 @@ export default function AdminAdsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500 truncate max-w-xs">
                         {booking.link_url ? (
-                          <a href={booking.link_url} target="_blank" rel="noreferrer" className="hover:underline">
+                          <a
+                            href={booking.link_url.startsWith('http') ? booking.link_url : `https://${booking.link_url}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:underline"
+                          >
                             {booking.link_url}
                           </a>
                         ) : '-'}
