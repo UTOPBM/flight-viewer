@@ -77,32 +77,38 @@ export default function AdminAdsPage() {
   const handleApprove = async (booking: AdBooking) => {
     if (!confirm('승인하시겠습니까? 승인 메일 발송 창이 열립니다.')) return;
 
-    // 1. Update DB Status
-    const { error } = await supabase
-      .from('ad_bookings')
-      .update({ status: 'approved' })
-      .eq('id', booking.id);
+    // 1. Call Approve API
+    try {
+      const response = await fetch('/api/admin/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id })
+      });
 
-    if (error) {
-      alert('상태 업데이트 실패');
-      return;
+      if (!response.ok) {
+        throw new Error('Approval failed');
+      }
+
+      // 2. Optimistic Update
+      setBookings(prev => prev.map(b =>
+        b.id === booking.id ? { ...b, status: 'approved' } : b
+      ));
+
+      // 3. Open Mail Client
+      const subject = `[Flight Viewer] 광고 예약이 승인되었습니다 (${booking.selected_date})`;
+      const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 광고 예약이 승인되었습니다.\n감사합니다.\n\nFlight Viewer 드림`;
+
+      // Use Gmail Compose URL
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${booking.buyer_contact}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(gmailUrl, '_blank');
+
+      // 4. Background Fetch
+      fetchBookings();
+
+    } catch (error) {
+      console.error(error);
+      alert('승인 처리 중 오류가 발생했습니다.');
     }
-
-    // 2. Optimistic Update
-    setBookings(prev => prev.map(b =>
-      b.id === booking.id ? { ...b, status: 'approved' } : b
-    ));
-
-    // 3. Open Mail Client
-    const subject = `[Flight Viewer] 광고 예약이 승인되었습니다 (${booking.selected_date})`;
-    const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 광고 예약이 승인되었습니다.\n감사합니다.\n\nFlight Viewer 드림`;
-
-    // Use Gmail Compose URL
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${booking.buyer_contact}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(gmailUrl, '_blank');
-
-    // 4. Background Fetch (just in case)
-    fetchBookings();
   };
 
   const handleReject = async (booking: AdBooking) => {
