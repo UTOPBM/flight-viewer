@@ -35,8 +35,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             body: JSON.stringify({
                 data: {
                     type: "refunds",
-                    attributes: {
-                        order_id: parseInt(orderId) // Must be an integer
+                    relationships: {
+                        order: {
+                            data: {
+                                type: "orders",
+                                id: orderId.toString()
+                            }
+                        }
                     }
                 }
             })

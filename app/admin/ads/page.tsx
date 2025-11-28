@@ -91,7 +91,10 @@ export default function AdminAdsPage() {
     // 2. Open Mail Client
     const subject = `[Flight Viewer] 광고 예약이 승인되었습니다 (${booking.selected_date})`;
     const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 광고 예약이 승인되었습니다.\n감사합니다.\n\nFlight Viewer 드림`;
-    window.location.href = `mailto:${booking.buyer_contact}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Use Gmail Compose URL
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${booking.buyer_contact}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
 
     fetchBookings();
   };
