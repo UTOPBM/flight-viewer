@@ -158,6 +158,17 @@ export default function AdBookingPage() {
               </h2>
               <p className="text-gray-500 text-sm mb-6">시작일과 종료일을 클릭하여 광고를 게시할 기간을 선택해주세요.</p>
 
+              <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-lg p-3 flex items-start gap-3">
+                <span className="text-xl">💎</span>
+                <div>
+                  <h3 className="text-sm font-bold text-indigo-900">하루 단 하나의 브랜드만!</h3>
+                  <p className="text-xs text-indigo-700 mt-0.5">
+                    해당 날짜는 오직 귀사의 광고만 독점 게시됩니다.<br />
+                    방해받지 않는 최고의 주목도를 경험하세요.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex justify-center border border-gray-100 rounded-xl p-4 bg-gray-50/50">
                 <style>{`
                   .rdp { --rdp-cell-size: 40px; --rdp-accent-color: #FF385C; --rdp-background-color: #F7F7F7; }
