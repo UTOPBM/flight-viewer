@@ -18,22 +18,38 @@ interface AdBooking {
 
 export default function AdminAdsPage() {
   const [bookings, setBookings] = useState<AdBooking[]>([]);
+  const [legacyAds, setLegacyAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   const fetchBookings = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+
+    // 1. Fetch Bookings
+    const { data: bookingData, error: bookingError } = await supabase
       .from('ad_bookings')
       .select('*')
       .order('selected_date', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching bookings:', error);
+    if (bookingError) {
+      console.error('Error fetching bookings:', bookingError);
       alert('데이터를 불러오는데 실패했습니다.');
     } else {
-      setBookings(data as AdBooking[]);
+      setBookings(bookingData as AdBooking[]);
     }
+
+    // 2. Fetch Legacy Ads
+    const { data: legacyData, error: legacyError } = await supabase
+      .from('advertisements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (legacyError) {
+      console.error('Error fetching legacy ads:', legacyError);
+    } else {
+      setLegacyAds(legacyData || []);
+    }
+
     setLoading(false);
   };
 
@@ -120,7 +136,9 @@ export default function AdminAdsPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        {/* Section 1: Bookings */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4">📅 날짜별 예약 광고</h2>
+        <div className="bg-white rounded-xl shadow overflow-hidden mb-12">
           {loading ? (
             <div className="p-8 text-center text-gray-500">로딩 중...</div>
           ) : bookings.length === 0 ? (
@@ -187,6 +205,53 @@ export default function AdminAdsPage() {
                             승인 취소 (환불 및 거절)
                           </button>
                         )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Section 2: Legacy Ads */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4">🖼️ 기본 광고 (예약 없을 때 노출)</h2>
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          {legacyAds.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">등록된 기본 광고가 없습니다.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">위치</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이미지</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">링크</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {legacyAds.map((ad) => (
+                    <tr key={ad.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {ad.title}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {ad.position}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {ad.image_url ? (
+                          <a href={ad.image_url} target="_blank" rel="noreferrer" className="block w-24 h-12 bg-gray-100 rounded overflow-hidden relative group">
+                            <img src={ad.image_url} alt="Ad" className="w-full h-full object-cover" />
+                          </a>
+                        ) : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500 truncate max-w-xs">
+                        <a href={ad.link_url} target="_blank" rel="noreferrer" className="hover:underline">{ad.link_url}</a>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {ad.is_active ? <span className="text-green-600 font-bold">활성</span> : <span className="text-gray-400">비활성</span>}
                       </td>
                     </tr>
                   ))}

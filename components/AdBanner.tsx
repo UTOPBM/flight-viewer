@@ -35,7 +35,32 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
-      // 현재 날짜
+      // 1. Check for Booked Ads (Priority)
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('ad_bookings')
+        .select('*')
+        .eq('selected_date', today)
+        .eq('status', 'approved') // Only approved ads
+        .maybeSingle();
+
+      if (bookingData) {
+        setAd({
+          id: bookingData.id,
+          title: 'Sponsored Ad',
+          description: null,
+          image_url: bookingData.image_url,
+          link_url: '#', // TODO: Add link_url to ad_bookings
+          position: position,
+          priority: 100,
+          click_count: 0,
+          view_count: 0
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fallback to Default Ads (Legacy)
       const now = new Date().toISOString()
 
       const { data, error } = await supabase
@@ -43,21 +68,20 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
         .select('*')
         .eq('position', position)
         .eq('is_active', true)
-        .or(`start_date.is.null,start_date.lte.${now}`)  // 시작일 없거나 시작일 지남
-        .or(`end_date.is.null,end_date.gte.${now}`)      // 종료일 없거나 종료일 안 지남
+        .or(`start_date.is.null,start_date.lte.${now}`)
+        .or(`end_date.is.null,end_date.gte.${now}`)
         .order('priority', { ascending: false })
         .limit(1)
         .single()
 
       if (error) {
-        console.error('Failed to fetch ad:', error)
+        // console.error('Failed to fetch ad:', error) // Suppress error if no default ad
         setLoading(false)
         return
       }
 
       if (data) {
         setAd(data)
-        // 노출 수 증가 (비동기로 처리, UI 블로킹 없이)
         incrementViewCount(data.id)
       }
 
