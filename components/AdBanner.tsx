@@ -148,7 +148,11 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
     }
 
     // 새 탭에서 링크 열기
-    window.open(ad.link_url, '_blank', 'noopener,noreferrer')
+    let url = ad.link_url;
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   if (loading) {

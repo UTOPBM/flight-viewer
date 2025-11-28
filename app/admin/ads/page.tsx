@@ -156,18 +156,24 @@ export default function AdminAdsPage() {
   const handleDelete = async (booking: AdBooking) => {
     if (!confirm('정말로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
 
-    const { error } = await supabase
-      .from('ad_bookings')
-      .delete()
-      .eq('id', booking.id);
+    try {
+      const response = await fetch('/api/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: booking.id })
+      });
 
-    if (error) {
-      alert('삭제 실패: ' + error.message);
-      return;
+      if (!response.ok) {
+        const errorData = await response.json() as { error?: string };
+        throw new Error(errorData.error || 'Delete failed');
+      }
+
+      setBookings(prev => prev.filter(b => b.id !== booking.id));
+      alert('삭제되었습니다.');
+    } catch (err: any) {
+      console.error(err);
+      alert('삭제 실패: ' + err.message);
     }
-
-    setBookings(prev => prev.filter(b => b.id !== booking.id));
-    alert('삭제되었습니다.');
   };
 
   const openEditBooking = (booking: AdBooking) => {
