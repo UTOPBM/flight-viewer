@@ -146,7 +146,7 @@ export default function AdBookingPage() {
   };
 
   const daysCount = calculateDays();
-  const totalPrice = daysCount * 10000;
+  const totalPrice = daysCount * 100000;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
