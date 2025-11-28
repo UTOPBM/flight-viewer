@@ -144,39 +144,55 @@ export default function AdBookingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="md:flex">
-          {/* Left Side: Calendar */}
-          <div className="md:w-1/2 p-8 border-r border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">날짜 선택</h2>
-            <p className="text-gray-500 text-sm mb-6">시작일과 종료일을 클릭하여 기간을 선택해주세요.</p>
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">광고 슬롯 예약하기</h1>
 
-            <div className="flex justify-center">
-              <style>{`
-                .rdp { --rdp-cell-size: 40px; --rdp-accent-color: #FF385C; --rdp-background-color: #F7F7F7; }
-                .rdp-day_selected:not(.rdp-day_disabled) { background-color: #FF385C; color: white; font-weight: bold; }
-                .rdp-day_selected:hover:not(.rdp-day_disabled) { background-color: #E00B41; }
-                .rdp-button:hover:not([disabled]):not(.rdp-day_selected) { background-color: #F7F7F7; color: #FF385C; }
-              `}</style>
-              <DayPicker
-                mode="range"
-                selected={selectedRange}
-                onSelect={setSelectedRange}
-                disabled={bookedDates}
-                locale={ko}
-                modifiersStyles={{
-                  disabled: { color: '#d1d5db', textDecoration: 'line-through' }
-                }}
-              />
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="lg:grid lg:grid-cols-12 lg:divide-x lg:divide-gray-100">
+
+            {/* Column 1: Calendar (4 cols) */}
+            <div className="lg:col-span-4 p-6 sm:p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold mr-3">1</span>
+                날짜 선택
+              </h2>
+              <p className="text-gray-500 text-sm mb-6">시작일과 종료일을 클릭하여 광고를 게시할 기간을 선택해주세요.</p>
+
+              <div className="flex justify-center border border-gray-100 rounded-xl p-4 bg-gray-50/50">
+                <style>{`
+                  .rdp { --rdp-cell-size: 40px; --rdp-accent-color: #FF385C; --rdp-background-color: #F7F7F7; }
+                  .rdp-day_selected:not(.rdp-day_disabled) { background-color: #FF385C; color: white; font-weight: bold; }
+                  .rdp-day_selected:hover:not(.rdp-day_disabled) { background-color: #E00B41; }
+                  .rdp-button:hover:not([disabled]):not(.rdp-day_selected) { background-color: #F7F7F7; color: #FF385C; }
+                `}</style>
+                <DayPicker
+                  mode="range"
+                  selected={selectedRange}
+                  onSelect={setSelectedRange}
+                  disabled={bookedDates}
+                  locale={ko}
+                  modifiersStyles={{
+                    disabled: { color: '#d1d5db', textDecoration: 'line-through' }
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Image Upload Section */}
-            <div className="mt-10 pt-8 border-t border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">광고 배너 이미지</h3>
+            {/* Column 2: Image Upload (4 cols) */}
+            <div className="lg:col-span-4 p-6 sm:p-8 bg-gray-50/30">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold mr-3">2</span>
+                이미지 업로드
+              </h2>
+              <p className="text-gray-500 text-sm mb-6">광고 배너로 사용할 이미지를 업로드하고 미리보기를 확인하세요.</p>
 
-              <div className="mb-4">
-                <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
-                  <span className="mr-2">📁</span> 이미지 파일 선택
+              <div className="mb-6">
+                <label className={`w-full flex flex-col items-center justify-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${imageFile ? 'border-indigo-300 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'}`}>
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <span className="text-3xl mb-3">📁</span>
+                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">클릭하여 업로드</span></p>
+                    <p className="text-xs text-gray-400">PNG, JPG (최대 5MB)</p>
+                  </div>
                   <input
                     accept="image/*"
                     className="hidden"
@@ -184,109 +200,131 @@ export default function AdBookingPage() {
                     onChange={handleImageSelect}
                   />
                 </label>
-                <p className="text-xs text-gray-500 mt-2">
-                  권장: <strong>2560×224px</strong> (레티나 대응) | 최소: 1920×140px | 최대: 5MB
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  권장 사이즈: <strong>2560×224px</strong> (최소 1920×140px)
                 </p>
               </div>
 
-              {previewUrl && (
-                <div className="space-y-4 mb-3 animate-fade-in">
-                  <div className="border border-gray-300 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-2 font-medium">📷 원본 이미지:</p>
-                    <img alt="Preview" className="max-w-full max-h-48 rounded border border-gray-200 object-contain" src={previewUrl} />
-                  </div>
+              {previewUrl ? (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="border border-blue-200 rounded-lg p-3 bg-white shadow-sm">
+                    <p className="text-xs text-blue-600 mb-2 font-bold flex items-center">
+                      👁️ 미리보기 (자동 크롭)
+                    </p>
 
-                  <div className="border border-blue-300 rounded-lg p-3 bg-blue-50">
-                    <p className="text-xs text-blue-700 mb-3 font-medium">👁️ 실제 사이트에서 보이는 모습 (크롭 적용):</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] text-gray-500 mb-1">모바일 (70px)</p>
+                        <div className="bg-gray-100 rounded overflow-hidden mx-auto max-w-[300px]">
+                          <div className="h-[70px] overflow-hidden relative">
+                            <img alt="Mobile" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover" src={previewUrl} />
+                          </div>
+                        </div>
+                      </div>
 
-                    <div className="mb-4">
-                      <p className="text-xs text-gray-600 mb-1">📱 모바일 (70px 높이):</p>
-                      <div className="bg-gray-100 rounded overflow-hidden max-w-[375px]">
-                        <div className="h-[70px] overflow-hidden">
-                          <img alt="Mobile preview" className="w-full h-full object-cover" src={previewUrl} />
+                      <div>
+                        <p className="text-[10px] text-gray-500 mb-1">데스크톱 (112px)</p>
+                        <div className="bg-gray-100 rounded overflow-hidden">
+                          <div className="h-[80px] overflow-hidden relative">
+                            <img alt="Desktop" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover" src={previewUrl} />
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <p className="text-xs text-gray-600 mb-1">💻 태블릿 (96px 높이):</p>
-                      <div className="bg-gray-100 rounded overflow-hidden max-w-[768px]">
-                        <div className="h-24 overflow-hidden">
-                          <img alt="Tablet preview" className="w-full h-full object-cover" src={previewUrl} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">🖥️ 데스크톱 (112px 높이):</p>
-                      <div className="bg-gray-100 rounded overflow-hidden">
-                        <div className="h-28 overflow-hidden">
-                          <img alt="Desktop preview" className="w-full h-full object-cover" src={previewUrl} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-orange-600 mt-3 flex items-start gap-1">
-                      <span>⚠️</span><span>좌우가 잘릴 수 있습니다. 중요한 내용은 이미지 중앙에 배치하세요!</span>
+                    <p className="text-[10px] text-orange-500 mt-2 text-center">
+                      * 기기 해상도에 따라 좌우가 잘릴 수 있습니다.
                     </p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Side: Summary & Checkout */}
-          <div className="md:w-1/2 p-8 bg-gray-50 flex flex-col justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">예약 내역</h2>
-
-              {selectedRange?.from ? (
-                <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600 font-medium">선택한 기간</span>
-                      <span className="text-indigo-600 font-bold">{daysCount}일</span>
-                    </div>
-                    <div className="text-sm text-gray-800">
-                      {format(selectedRange.from, 'yyyy.MM.dd')}
-                      {selectedRange.to && ` ~ ${format(selectedRange.to, 'yyyy.MM.dd')}`}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
-                      <span>총 합계</span>
-                      <span>{totalPrice.toLocaleString()}원</span>
-                    </div>
-                    <p className="text-right text-xs text-gray-500 mt-1">VAT 포함</p>
-                  </div>
-                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-                  <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p>달력에서 기간을 선택해주세요</p>
+                <div className="text-center py-8 text-gray-400 bg-gray-100 rounded-lg border border-gray-200 border-dashed">
+                  <p className="text-sm">이미지를 선택하면<br />미리보기가 표시됩니다.</p>
                 </div>
               )}
             </div>
 
-            <div className="mt-8">
-              <button
-                onClick={handlePurchase}
-                disabled={!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile}
-                className={`w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white 
-                  ${!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[#FF385C] to-[#BD1E59] hover:from-[#E00B41] hover:to-[#A3164B] transform hover:-translate-y-0.5 transition-all duration-200'
-                  }`}
-              >
-                {uploading ? '이미지 업로드 중...' : loading ? '로딩 중...' : '예약하기'}
-              </button>
-              <p className="mt-3 text-xs text-center text-gray-400">
-                결제는 Lemon Squeezy를 통해 안전하게 처리됩니다.
-              </p>
+            {/* Column 3: Summary & Checkout (4 cols) */}
+            <div className="lg:col-span-4 p-6 sm:p-8 bg-gray-50 flex flex-col">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold mr-3">3</span>
+                예약 확인
+              </h2>
+
+              <div className="flex-grow">
+                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">선택 내역</h3>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">기간</span>
+                      <span className="font-medium text-gray-900">{daysCount}일</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">날짜</span>
+                      <span className="font-medium text-gray-900 text-right">
+                        {selectedRange?.from ? (
+                          <>
+                            {format(selectedRange.from, 'yyyy.MM.dd')}
+                            {selectedRange.to && <br />}
+                            {selectedRange.to && `~ ${format(selectedRange.to, 'yyyy.MM.dd')}`}
+                          </>
+                        ) : '-'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-gray-500">이미지</span>
+                      <span className="font-medium text-gray-900">
+                        {imageFile ? <span className="text-green-600 flex items-center">✅ 업로드됨</span> : <span className="text-gray-400">미선택</span>}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 my-4"></div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-bold text-gray-900">총 결제 금액</span>
+                    <span className="text-xl font-bold text-indigo-600">{totalPrice.toLocaleString()}원</span>
+                  </div>
+                  <p className="text-right text-xs text-gray-400 mt-1">VAT 포함</p>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                  <h4 className="text-xs font-bold text-blue-800 mb-2">💡 안내사항</h4>
+                  <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                    <li>결제 완료 후 예약이 확정됩니다.</li>
+                    <li>이미지는 관리자 승인 후 게시됩니다.</li>
+                    <li>환불 규정은 이용약관을 참고해주세요.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  onClick={handlePurchase}
+                  disabled={!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile}
+                  className={`w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white transition-all duration-200
+                    ${!selectedRange?.from || !selectedRange?.to || loading || uploading || !imageFile
+                      ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-[#FF385C] to-[#BD1E59] hover:from-[#E00B41] hover:to-[#A3164B] hover:-translate-y-1 hover:shadow-xl'
+                    }`}
+                >
+                  {uploading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      업로드 중...
+                    </span>
+                  ) : loading ? '로딩 중...' : '예약 및 결제하기'}
+                </button>
+                <p className="mt-3 text-xs text-center text-gray-400 flex items-center justify-center gap-1">
+                  🔒 Lemon Squeezy 안전 결제
+                </p>
+              </div>
             </div>
+
           </div>
         </div>
       </div>
