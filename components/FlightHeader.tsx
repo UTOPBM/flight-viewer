@@ -8,10 +8,10 @@ export default function FlightHeader() {
     const handleMouseEnter = () => {
         if (!isFlying) {
             setIsFlying(true)
-            // Reset animation state after it completes (approx 1.5s)
+            // Reset animation state after it completes (approx 2s)
             setTimeout(() => {
                 setIsFlying(false)
-            }, 1500)
+            }, 2000)
         }
     }
 
@@ -21,20 +21,21 @@ export default function FlightHeader() {
             onMouseEnter={handleMouseEnter}
         >
             <a href="/" className="block relative">
-                {/* Default Text State */}
+                {/* Static State */}
                 <span
                     className={`inline-block transition-opacity duration-300 ${isFlying ? 'opacity-0' : 'opacity-100'}`}
                 >
-                    ✈️우리들의 여행이 쉬워졌으면 좋겠어
+                    ✈️
                 </span>
+                <span>우리들의 여행이 쉬워졌으면 좋겠어</span>
 
                 {/* Flying Plane State */}
                 {isFlying && (
                     <span
-                        className="absolute left-0 top-0 animate-flight-takeoff"
+                        className="absolute left-0 bottom-0 animate-runway-takeoff"
                         aria-hidden="true"
                     >
-                        ✈️
+                        🛫
                     </span>
                 )}
             </a>
