@@ -11,8 +11,8 @@
       opacity: 1;
     }
 
-    60% {
-      left: 75%;
+    55% {
+      left: 50%;
       bottom: 0;
       transform: scale(1) rotate(0deg);
       opacity: 1;
@@ -20,13 +20,14 @@
 
     100% {
       left: 100%;
-      bottom: 40px;
-      transform: scale(1.2) rotate(-30deg);
+      bottom: 60px;
+      transform: scale(1.2) rotate(-25deg);
       opacity: 0;
     }
   }
 
   .animate-runway-takeoff {
-    animation: runway-takeoff 2s ease-in-out forwards;
+    /* cubic-bezier(0.55, 0.055, 0.675, 0.19) is a custom ease-in for acceleration */
+    animation: runway-takeoff 2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
   }
 }
