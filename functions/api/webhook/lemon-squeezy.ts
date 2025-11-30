@@ -51,6 +51,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             const selectedDatesStr = payload.meta.custom_data?.selected_dates;
             const imageUrl = payload.meta.custom_data?.image_url;
             const linkUrl = payload.meta.custom_data?.link_url; // Extract Link URL
+            const adType = payload.meta.custom_data?.ad_type || 'top'; // Extract Ad Type, default to 'top'
             const buyerName = payload.data.attributes.user_name;
             const buyerEmail = payload.data.attributes.user_email;
             const orderId = payload.data.id; // Lemon Squeezy Order ID
@@ -71,6 +72,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                         .from('ad_bookings')
                         .select('id, status')
                         .eq('selected_date', date)
+                        .eq('ad_type', adType) // Check for same ad type
                         .maybeSingle();
 
                     if (existing) {
@@ -94,7 +96,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                             buyer_contact: buyerEmail,
                             image_url: imageUrl,
                             link_url: linkUrl,
-                            order_id: orderId
+                            order_id: orderId,
+                            ad_type: adType
                         });
 
                     if (error) {
