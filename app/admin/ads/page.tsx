@@ -62,6 +62,7 @@ export default function AdminAdsPage() {
     const { data: legacyData, error: legacyError } = await supabase
       .from('advertisements')
       .select('*')
+      .eq('position', 'banner-top')
       .order('created_at', { ascending: false });
 
     if (legacyError) {

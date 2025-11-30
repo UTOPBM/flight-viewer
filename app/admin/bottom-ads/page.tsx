@@ -32,7 +32,7 @@ export default function BottomAdsPage() {
         const { data, error } = await supabase
             .from('advertisements')
             .select('*')
-            .eq('position', 'bottom')
+            .eq('position', 'banner-bottom')
             .order('priority', { ascending: false })
             .order('created_at', { ascending: false });
 
@@ -71,7 +71,7 @@ export default function BottomAdsPage() {
             link_url: formData.link_url,
             is_active: formData.is_active,
             priority: formData.priority,
-            position: 'bottom'
+            position: 'banner-bottom'
         };
 
         let error;
