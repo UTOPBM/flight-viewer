@@ -32,6 +32,14 @@ const AD_CONFIG = {
     }
 };
 
+export async function generateStaticParams() {
+    return [
+        { type: 'top' },
+        { type: 'bottom' },
+        { type: 'newsletter' },
+    ];
+}
+
 export default function AdBookingPage() {
     const params = useParams();
     const router = useRouter();
