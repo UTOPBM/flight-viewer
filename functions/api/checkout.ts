@@ -1,13 +1,15 @@
 interface Env {
     LEMON_SQUEEZY_STORE_ID: string;
-    LEMON_SQUEEZY_VARIANT_ID: string;
+    LEMON_SQUEEZY_VARIANT_ID: string; // Top Banner (Default)
+    LEMON_SQUEEZY_VARIANT_ID_BOTTOM: string; // Bottom Banner
+    LEMON_SQUEEZY_VARIANT_ID_NEWSLETTER: string; // Newsletter Banner
     LEMON_SQUEEZY_API_KEY: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     try {
         const { request, env } = context;
-        const { dates, imageUrl, linkUrl } = await request.json() as { dates: string[], imageUrl: string, linkUrl: string };
+        const { dates, imageUrl, linkUrl, adType } = await request.json() as { dates: string[], imageUrl: string, linkUrl: string, adType?: string };
 
         if (!dates || dates.length === 0 || !imageUrl || !linkUrl) {
             return new Response(JSON.stringify({ error: 'Dates, Image URL, and Link URL are required' }), {
@@ -17,11 +19,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         }
 
         const storeId = env.LEMON_SQUEEZY_STORE_ID;
-        const variantId = env.LEMON_SQUEEZY_VARIANT_ID;
         const apiKey = env.LEMON_SQUEEZY_API_KEY;
 
+        // Determine Variant ID based on adType
+        let variantId = env.LEMON_SQUEEZY_VARIANT_ID; // Default to Top
+        if (adType === 'bottom') {
+            variantId = env.LEMON_SQUEEZY_VARIANT_ID_BOTTOM;
+        } else if (adType === 'newsletter') {
+            variantId = env.LEMON_SQUEEZY_VARIANT_ID_NEWSLETTER;
+        }
+
         if (!storeId || !variantId || !apiKey) {
-            return new Response(JSON.stringify({ error: 'Server configuration missing' }), {
+            return new Response(JSON.stringify({ error: 'Server configuration missing for the selected ad type' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -43,7 +52,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                             custom: {
                                 selected_dates: dates.join(','),
                                 image_url: imageUrl,
-                                link_url: linkUrl // Pass link URL
+                                link_url: linkUrl,
+                                ad_type: adType || 'top' // Track ad type
                             },
                             variant_quantities: [
                                 {
