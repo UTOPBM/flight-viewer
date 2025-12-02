@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { format } from 'date-fns'
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns'
+import { ko } from 'date-fns/locale'
 import { DayPicker, DateRange } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 
@@ -65,6 +66,13 @@ export default function DateRangePicker({
         setLocalDateRange(undefined)
     }
 
+    const selectMonth = (monthOffset: number) => {
+        const targetDate = addMonths(new Date(), monthOffset)
+        const from = startOfMonth(targetDate)
+        const to = endOfMonth(targetDate)
+        setLocalDateRange({ from, to })
+    }
+
     return (
         <div className={`relative ${className}`} ref={containerRef}>
             <button
@@ -72,7 +80,7 @@ export default function DateRangePicker({
                 className="flex items-center justify-between w-full min-w-[180px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
             >
                 <span className={!dateRange ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium'}>
-                    {formatDateRange()}
+                    📅 {formatDateRange()}
                 </span>
                 {dateRange?.from && (
                     <div
@@ -89,12 +97,34 @@ export default function DateRangePicker({
 
             {isOpen && (
                 <div className="absolute z-50 mt-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+                    {/* 월 단위 빠른 선택 */}
+                    <div className="mb-3 flex gap-2 flex-wrap">
+                        <button
+                            onClick={() => selectMonth(0)}
+                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                        >
+                            이번 달
+                        </button>
+                        <button
+                            onClick={() => selectMonth(1)}
+                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                        >
+                            다음 달
+                        </button>
+                        <button
+                            onClick={() => selectMonth(2)}
+                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                        >
+                            2개월 후
+                        </button>
+                    </div>
                     <DayPicker
                         mode="range"
                         selected={localDateRange}
                         onSelect={handleSelect}
                         numberOfMonths={1}
                         defaultMonth={localDateRange?.from || new Date(2025, 11)}
+                        locale={ko}
                         styles={{
                             caption: { color: 'inherit' },
                             head_cell: { color: 'gray' },

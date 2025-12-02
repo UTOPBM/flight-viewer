@@ -363,9 +363,9 @@ export default function FlightTable() {
           />
         </div>
 
-        {/* 2. 출발일 (모바일: 전체 너비) */}
+        {/* 2. 여행 기간 (모바일: 전체 너비) */}
         <div className="w-full md:w-auto">
-          <label className="mb-2 block text-sm font-medium">출발일</label>
+          <label className="mb-2 block text-sm font-medium">여행 기간</label>
           <DateRangePicker
             dateRange={dateRange}
             onSelect={setDateRange}
