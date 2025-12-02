@@ -402,7 +402,7 @@ export default function FlightTable() {
         </div>
 
         {/* 4. 여행 옵션 & 요약 (모바일: 반반) */}
-        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex md:items-end w-full md:w-auto">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex w-full md:w-auto">
           <div className="md:w-auto">
             <label className="mb-1 md:mb-2 block text-sm font-medium">여행 옵션</label>
             <button
@@ -433,20 +433,11 @@ export default function FlightTable() {
                 선택 복사 ({selectedFlights.size})
               </button>
             ) : (
-              <div className="hidden md:block text-sm whitespace-nowrap mb-2">
+              <div className="hidden md:block text-sm whitespace-nowrap">
                 총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
               </div>
             )}
           </div>
-        </div>
-
-        {/* 데스크탑 전용 총 개수 표시 (모바일에서는 위쪽 그리드 셀에 포함됨) */}
-        <div className="hidden md:flex items-end">
-          {selectedFlights.size === 0 && (
-            <div className="text-sm whitespace-nowrap mb-2">
-              총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
-            </div>
-          )}
         </div>
       </div>
 
