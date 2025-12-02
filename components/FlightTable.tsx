@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Flight, Region, AirportMapping } from '@/lib/types'
+import { DateRange } from 'react-day-picker'
+import DateRangePicker from './DateRangePicker'
 
 type QuickFilter = 'all' | 'japan' | 'europe' | 'southeast'
 
@@ -13,7 +15,7 @@ export default function FlightTable() {
   const [selectedFlights, setSelectedFlights] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [region, setRegion] = useState<Region>('all')
-  const [month, setMonth] = useState<string>('all')
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [copyNotification, setCopyNotification] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -48,7 +50,7 @@ export default function FlightTable() {
 
   useEffect(() => {
     filterAndSortFlights()
-  }, [flights, region, month, sortOrder, searchQuery, quickFilter, includeWeekend])
+  }, [flights, region, dateRange, sortOrder, searchQuery, quickFilter, includeWeekend])
 
   const fetchData = async () => {
     setLoading(true)
@@ -104,9 +106,25 @@ export default function FlightTable() {
       filtered = filtered.filter((f) => f.region === '동남아')
     }
 
-    // 월 필터
-    if (month !== 'all') {
-      filtered = filtered.filter((f) => f.departure_month === month)
+    // 날짜 범위 필터
+    if (dateRange?.from) {
+      filtered = filtered.filter((f) => {
+        const flightDate = new Date(f.outbound_date)
+        // Set time to 00:00:00 for accurate date comparison
+        flightDate.setHours(0, 0, 0, 0)
+
+        const fromDate = new Date(dateRange.from!)
+        fromDate.setHours(0, 0, 0, 0)
+
+        if (dateRange.to) {
+          const toDate = new Date(dateRange.to)
+          toDate.setHours(23, 59, 59, 999)
+          return flightDate >= fromDate && flightDate <= toDate
+        } else {
+          // If only start date is selected, show flights on or after that date
+          return flightDate >= fromDate
+        }
+      })
     }
 
     // 목적지 검색
@@ -139,11 +157,6 @@ export default function FlightTable() {
     })
 
     setFilteredFlights(filtered)
-  }
-
-  const getUniqueMonths = () => {
-    const months = [...new Set(flights.map((f) => f.departure_month))]
-    return months.sort()
   }
 
   const formatDate = (dateStr: string) => {
@@ -379,19 +392,11 @@ export default function FlightTable() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium">출발월</label>
-          <select
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
-          >
-            <option value="all">전체</option>
-            {getUniqueMonths().map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+          <label className="mb-2 block text-sm font-medium">출발일</label>
+          <DateRangePicker
+            dateRange={dateRange}
+            onSelect={setDateRange}
+          />
         </div>
 
         <div>
