@@ -17,7 +17,15 @@ export default function DateRangePicker({
     className,
 }: DateRangePickerProps) {
     const [isOpen, setIsOpen] = React.useState(false)
+    const [localDateRange, setLocalDateRange] = React.useState<DateRange | undefined>(dateRange)
     const containerRef = React.useRef<HTMLDivElement>(null)
+
+    // Sync local state when prop changes or modal opens
+    React.useEffect(() => {
+        if (isOpen) {
+            setLocalDateRange(dateRange)
+        }
+    }, [isOpen, dateRange])
 
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -33,14 +41,16 @@ export default function DateRangePicker({
     const toggleOpen = () => setIsOpen(!isOpen)
 
     const handleSelect = (range: DateRange | undefined) => {
-        onSelect(range)
-        // Don't close immediately on range selection as user might be selecting the end date
-        if (range?.from && range?.to) {
-            // Optional: Auto-close when both dates are picked? 
-            // Let's keep it open so they can see what they picked, or maybe close it.
-            // Usually better to keep open or have an Apply button. 
-            // For now, let's leave it open until they click outside or toggle.
-        }
+        setLocalDateRange(range)
+    }
+
+    const handleConfirm = () => {
+        onSelect(localDateRange)
+        setIsOpen(false)
+    }
+
+    const handleReset = () => {
+        setLocalDateRange(undefined)
     }
 
     const formatDateRange = () => {
@@ -64,10 +74,10 @@ export default function DateRangePicker({
                 <div className="absolute z-50 mt-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
                     <DayPicker
                         mode="range"
-                        selected={dateRange}
+                        selected={localDateRange}
                         onSelect={handleSelect}
-                        numberOfMonths={2}
-                        defaultMonth={new Date(2025, 11)} // Default to Dec 2025 as per user context
+                        numberOfMonths={1}
+                        defaultMonth={localDateRange?.from || new Date(2025, 11)}
                         styles={{
                             caption: { color: 'inherit' },
                             head_cell: { color: 'gray' },
@@ -86,16 +96,13 @@ export default function DateRangePicker({
                     />
                     <div className="mt-4 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
                         <button
-                            onClick={() => {
-                                onSelect(undefined)
-                                setIsOpen(false)
-                            }}
+                            onClick={handleReset}
                             className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                         >
                             초기화
                         </button>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleConfirm}
                             className="px-3 py-1.5 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 rounded"
                         >
                             확인

@@ -109,9 +109,12 @@ export default function FlightTable() {
     // 날짜 범위 필터
     if (dateRange?.from) {
       filtered = filtered.filter((f) => {
-        const flightDate = new Date(f.outbound_date)
+        const outboundDate = new Date(f.outbound_date)
+        const inboundDate = new Date(f.inbound_date)
+
         // Set time to 00:00:00 for accurate date comparison
-        flightDate.setHours(0, 0, 0, 0)
+        outboundDate.setHours(0, 0, 0, 0)
+        inboundDate.setHours(0, 0, 0, 0)
 
         const fromDate = new Date(dateRange.from!)
         fromDate.setHours(0, 0, 0, 0)
@@ -119,10 +122,12 @@ export default function FlightTable() {
         if (dateRange.to) {
           const toDate = new Date(dateRange.to)
           toDate.setHours(23, 59, 59, 999)
-          return flightDate >= fromDate && flightDate <= toDate
+
+          // Strict filtering: Both outbound and inbound dates must be within the range
+          return outboundDate >= fromDate && inboundDate <= toDate
         } else {
-          // If only start date is selected, show flights on or after that date
-          return flightDate >= fromDate
+          // If only start date is selected, show flights departing on or after that date
+          return outboundDate >= fromDate
         }
       })
     }
