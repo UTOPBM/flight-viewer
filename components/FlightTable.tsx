@@ -350,9 +350,9 @@ export default function FlightTable() {
         )}
       </div>
 
-      <div className="mb-3 md:mb-6 flex flex-col md:flex-row md:flex-wrap gap-2 md:gap-4 rounded-lg bg-white dark:bg-gray-800 p-3 md:p-4 shadow border border-gray-300 dark:border-gray-700">
-        {/* 1. 목적지 검색 (모바일: 전체 너비) */}
-        <div className="w-full md:flex-1 md:min-w-[150px]">
+      <div className="mb-3 md:mb-6 flex flex-col md:flex-row gap-2 md:gap-3 rounded-lg bg-white dark:bg-gray-800 p-3 md:p-4 shadow border border-gray-300 dark:border-gray-700">
+        {/* 1. 목적지 검색 */}
+        <div className="w-full md:flex-1">
           <label className="mb-1 md:mb-2 block text-sm font-medium">목적지 검색</label>
           <input
             type="text"
@@ -363,7 +363,7 @@ export default function FlightTable() {
           />
         </div>
 
-        {/* 2. 여행 기간 (모바일: 전체 너비) */}
+        {/* 2. 여행 기간 */}
         <div className="w-full md:w-auto">
           <label className="mb-1 md:mb-2 block text-sm font-medium">여행 기간</label>
           <DateRangePicker
@@ -372,37 +372,8 @@ export default function FlightTable() {
           />
         </div>
 
-        {/* 3. 지역 & 가격 정렬 (모바일: 반반) */}
-        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex w-full md:w-auto">
-          <div className="md:w-auto">
-            <label className="mb-1 md:mb-2 block text-sm font-medium">지역</label>
-            <select
-              value={region}
-              onChange={(e) => setRegion(e.target.value as Region)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-1.5 md:py-2 text-sm"
-            >
-              <option value="all">전체</option>
-              <option value="동북아">동북아</option>
-              <option value="동남아">동남아</option>
-              <option value="유럽미주">유럽미주</option>
-            </select>
-          </div>
-
-          <div className="md:w-auto">
-            <label className="mb-1 md:mb-2 block text-sm font-medium">가격 정렬</label>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-1.5 md:py-2 text-sm"
-            >
-              <option value="asc">낮은 순</option>
-              <option value="desc">높은 순</option>
-            </select>
-          </div>
-        </div>
-
-        {/* 4. 여행 옵션 & 요약 (모바일: 반반) */}
-        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex w-full md:w-auto">
+        {/* 3. 여행 옵션 & 총 개수 */}
+        <div className="grid grid-cols-2 gap-2 md:flex md:gap-3 w-full md:w-auto">
           <div className="md:w-auto">
             <label className="mb-1 md:mb-2 block text-sm font-medium">여행 옵션</label>
             <button
@@ -421,20 +392,18 @@ export default function FlightTable() {
             </button>
           </div>
 
-          <div className="flex flex-col justify-end items-end md:items-start">
-            <div className="text-sm whitespace-nowrap mb-1 md:mb-0 md:hidden">
-              총 <span className="font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
-            </div>
+          <div className="md:w-auto">
+            <label className="mb-1 md:mb-2 block text-sm font-medium md:invisible">·</label>
             {selectedFlights.size > 0 ? (
               <button
                 onClick={copySelectedToClipboard}
-                className="w-full md:w-auto rounded-lg bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600 transition-colors whitespace-nowrap"
+                className="w-full md:w-auto rounded-lg bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600 transition-colors whitespace-nowrap font-medium"
               >
                 선택 복사 ({selectedFlights.size})
               </button>
             ) : (
-              <div className="hidden md:block text-sm whitespace-nowrap">
-                총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
+              <div className="w-full rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-2 text-sm whitespace-nowrap font-medium text-gray-700 dark:text-gray-300 text-center">
+                총 {filteredFlights.length}개
               </div>
             )}
           </div>
