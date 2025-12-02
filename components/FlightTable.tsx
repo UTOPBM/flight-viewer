@@ -350,22 +350,22 @@ export default function FlightTable() {
         )}
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row md:flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-300 dark:border-gray-700">
+      <div className="mb-3 md:mb-6 flex flex-col md:flex-row md:flex-wrap gap-2 md:gap-4 rounded-lg bg-white dark:bg-gray-800 p-3 md:p-4 shadow border border-gray-300 dark:border-gray-700">
         {/* 1. 목적지 검색 (모바일: 전체 너비) */}
         <div className="w-full md:flex-1 md:min-w-[150px]">
-          <label className="mb-2 block text-sm font-medium">목적지 검색</label>
+          <label className="mb-1 md:mb-2 block text-sm font-medium">목적지 검색</label>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="도시명, 공항코드, 국가..."
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-1.5 md:py-2 text-sm"
           />
         </div>
 
         {/* 2. 여행 기간 (모바일: 전체 너비) */}
         <div className="w-full md:w-auto">
-          <label className="mb-2 block text-sm font-medium">여행 기간</label>
+          <label className="mb-1 md:mb-2 block text-sm font-medium">여행 기간</label>
           <DateRangePicker
             dateRange={dateRange}
             onSelect={setDateRange}
@@ -373,13 +373,13 @@ export default function FlightTable() {
         </div>
 
         {/* 3. 지역 & 가격 정렬 (모바일: 반반) */}
-        <div className="grid grid-cols-2 gap-4 md:flex md:gap-4 w-full md:w-auto">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex w-full md:w-auto">
           <div className="md:w-auto">
-            <label className="mb-2 block text-sm font-medium">지역</label>
+            <label className="mb-1 md:mb-2 block text-sm font-medium">지역</label>
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value as Region)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-1.5 md:py-2 text-sm"
             >
               <option value="all">전체</option>
               <option value="동북아">동북아</option>
@@ -389,11 +389,11 @@ export default function FlightTable() {
           </div>
 
           <div className="md:w-auto">
-            <label className="mb-2 block text-sm font-medium">가격 정렬</label>
+            <label className="mb-1 md:mb-2 block text-sm font-medium">가격 정렬</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-1.5 md:py-2 text-sm"
             >
               <option value="asc">낮은 순</option>
               <option value="desc">높은 순</option>
@@ -402,9 +402,9 @@ export default function FlightTable() {
         </div>
 
         {/* 4. 여행 옵션 & 요약 (모바일: 반반) */}
-        <div className="grid grid-cols-2 gap-4 md:flex md:items-end md:gap-3 w-full md:w-auto">
+        <div className="grid grid-cols-2 gap-2 md:gap-4 md:flex md:items-end w-full md:w-auto">
           <div className="md:w-auto">
-            <label className="mb-2 block text-sm font-medium">여행 옵션</label>
+            <label className="mb-1 md:mb-2 block text-sm font-medium">여행 옵션</label>
             <button
               onClick={() => setIncludeWeekend(!includeWeekend)}
               disabled={quickFilter === 'europe' || region === '유럽미주'}

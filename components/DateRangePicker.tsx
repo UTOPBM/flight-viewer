@@ -19,12 +19,14 @@ export default function DateRangePicker({
 }: DateRangePickerProps) {
     const [isOpen, setIsOpen] = React.useState(false)
     const [localDateRange, setLocalDateRange] = React.useState<DateRange | undefined>(dateRange)
+    const [displayMonth, setDisplayMonth] = React.useState<Date>(dateRange?.from || new Date(2025, 11))
     const containerRef = React.useRef<HTMLDivElement>(null)
 
     // Sync local state when prop changes or modal opens
     React.useEffect(() => {
         if (isOpen) {
             setLocalDateRange(dateRange)
+            setDisplayMonth(dateRange?.from || new Date(2025, 11))
         }
     }, [isOpen, dateRange])
 
@@ -71,6 +73,7 @@ export default function DateRangePicker({
         const from = startOfMonth(targetDate)
         const to = endOfMonth(targetDate)
         setLocalDateRange({ from, to })
+        setDisplayMonth(targetDate)
     }
 
     return (
@@ -123,7 +126,8 @@ export default function DateRangePicker({
                         selected={localDateRange}
                         onSelect={handleSelect}
                         numberOfMonths={1}
-                        defaultMonth={localDateRange?.from || new Date(2025, 11)}
+                        month={displayMonth}
+                        onMonthChange={setDisplayMonth}
                         locale={ko}
                         styles={{
                             caption: { color: 'inherit' },
