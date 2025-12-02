@@ -350,9 +350,9 @@ export default function FlightTable() {
         )}
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-300 dark:border-gray-700">
-        {/* 목적지 검색 */}
-        <div className="flex-1 min-w-[150px]">
+      <div className="mb-6 flex flex-col md:flex-row md:flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-300 dark:border-gray-700">
+        {/* 1. 목적지 검색 (모바일: 전체 너비) */}
+        <div className="w-full md:flex-1 md:min-w-[150px]">
           <label className="mb-2 block text-sm font-medium">목적지 검색</label>
           <input
             type="text"
@@ -363,40 +363,8 @@ export default function FlightTable() {
           />
         </div>
 
-        {/* 주말 포함 필터 */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">여행 옵션</label>
-          <button
-            onClick={() => setIncludeWeekend(!includeWeekend)}
-            disabled={quickFilter === 'europe' || region === '유럽미주'}
-            className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${(quickFilter === 'europe' || region === '유럽미주')
-              ? 'bg-blue-500 text-white cursor-not-allowed'
-              : includeWeekend
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-500 text-white hover:bg-gray-600'
-              }`}
-          >
-            {(quickFilter === 'europe' || region === '유럽미주') || includeWeekend
-              ? '주말 포함'
-              : '평일만'}
-          </button>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium">지역</label>
-          <select
-            value={region}
-            onChange={(e) => setRegion(e.target.value as Region)}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
-          >
-            <option value="all">전체</option>
-            <option value="동북아">동북아</option>
-            <option value="동남아">동남아</option>
-            <option value="유럽미주">유럽미주</option>
-          </select>
-        </div>
-
-        <div>
+        {/* 2. 출발일 (모바일: 전체 너비) */}
+        <div className="w-full md:w-auto">
           <label className="mb-2 block text-sm font-medium">출발일</label>
           <DateRangePicker
             dateRange={dateRange}
@@ -404,34 +372,80 @@ export default function FlightTable() {
           />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">가격 정렬</label>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
-          >
-            <option value="asc">낮은 순</option>
-            <option value="desc">높은 순</option>
-          </select>
+        {/* 3. 지역 & 가격 정렬 (모바일: 반반) */}
+        <div className="grid grid-cols-2 gap-4 md:flex md:gap-4 w-full md:w-auto">
+          <div className="md:w-auto">
+            <label className="mb-2 block text-sm font-medium">지역</label>
+            <select
+              value={region}
+              onChange={(e) => setRegion(e.target.value as Region)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+            >
+              <option value="all">전체</option>
+              <option value="동북아">동북아</option>
+              <option value="동남아">동남아</option>
+              <option value="유럽미주">유럽미주</option>
+            </select>
+          </div>
+
+          <div className="md:w-auto">
+            <label className="mb-2 block text-sm font-medium">가격 정렬</label>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2"
+            >
+              <option value="asc">낮은 순</option>
+              <option value="desc">높은 순</option>
+            </select>
+          </div>
         </div>
 
-        <div className="flex items-end gap-3">
-          <div className="text-sm whitespace-nowrap">
-            총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개 항공권
-            {selectedFlights.size > 0 && (
-              <span className="ml-2">
-                | 선택 <span className="inline-block w-[3ch] text-right font-bold text-green-600 dark:text-green-400">{selectedFlights.size}</span>개
-              </span>
+        {/* 4. 여행 옵션 & 요약 (모바일: 반반) */}
+        <div className="grid grid-cols-2 gap-4 md:flex md:items-end md:gap-3 w-full md:w-auto">
+          <div className="md:w-auto">
+            <label className="mb-2 block text-sm font-medium">여행 옵션</label>
+            <button
+              onClick={() => setIncludeWeekend(!includeWeekend)}
+              disabled={quickFilter === 'europe' || region === '유럽미주'}
+              className={`w-full whitespace-nowrap px-3 py-2 rounded-lg text-sm font-medium transition-colors ${(quickFilter === 'europe' || region === '유럽미주')
+                ? 'bg-blue-500 text-white cursor-not-allowed'
+                : includeWeekend
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-500 text-white hover:bg-gray-600'
+                }`}
+            >
+              {(quickFilter === 'europe' || region === '유럽미주') || includeWeekend
+                ? '주말 포함'
+                : '평일만'}
+            </button>
+          </div>
+
+          <div className="flex flex-col justify-end items-end md:items-start">
+            <div className="text-sm whitespace-nowrap mb-1 md:mb-0 md:hidden">
+              총 <span className="font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
+            </div>
+            {selectedFlights.size > 0 ? (
+              <button
+                onClick={copySelectedToClipboard}
+                className="w-full md:w-auto rounded-lg bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600 transition-colors whitespace-nowrap"
+              >
+                선택 복사 ({selectedFlights.size})
+              </button>
+            ) : (
+              <div className="hidden md:block text-sm whitespace-nowrap mb-2">
+                총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
+              </div>
             )}
           </div>
-          {selectedFlights.size > 0 && (
-            <button
-              onClick={copySelectedToClipboard}
-              className="rounded-lg bg-green-500 px-4 py-2 text-sm text-white hover:bg-green-600 transition-colors"
-            >
-              📋 선택 항목 복사
-            </button>
+        </div>
+
+        {/* 데스크탑 전용 총 개수 표시 (모바일에서는 위쪽 그리드 셀에 포함됨) */}
+        <div className="hidden md:flex items-end">
+          {selectedFlights.size === 0 && (
+            <div className="text-sm whitespace-nowrap mb-2">
+              총 <span className="inline-block w-[3ch] text-right font-bold text-blue-600 dark:text-blue-400">{filteredFlights.length}</span>개
+            </div>
           )}
         </div>
       </div>

@@ -55,19 +55,36 @@ export default function DateRangePicker({
 
     const formatDateRange = () => {
         if (!dateRange?.from) return '기간 선택'
-        if (!dateRange.to) return `${format(dateRange.from, 'yyyy-MM-dd')} - 선택 중...`
-        return `${format(dateRange.from, 'yyyy-MM-dd')} - ${format(dateRange.to, 'yyyy-MM-dd')}`
+        if (!dateRange.to) return `${format(dateRange.from, 'MM.dd')} - 선택 중...`
+        return `${format(dateRange.from, 'MM.dd')} - ${format(dateRange.to, 'MM.dd')}`
+    }
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        onSelect(undefined)
+        setLocalDateRange(undefined)
     }
 
     return (
         <div className={`relative ${className}`} ref={containerRef}>
             <button
                 onClick={toggleOpen}
-                className="flex items-center justify-between w-full min-w-[240px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="flex items-center justify-between w-full min-w-[180px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-                <span className={!dateRange ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}>
-                    📅 {formatDateRange()}
+                <span className={!dateRange ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium'}>
+                    {formatDateRange()}
                 </span>
+                {dateRange?.from && (
+                    <div
+                        role="button"
+                        onClick={handleClear}
+                        className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                )}
             </button>
 
             {isOpen && (
