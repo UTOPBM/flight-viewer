@@ -167,6 +167,23 @@ export default function FlightTable() {
     return rounded.toLocaleString() + '원'
   }
 
+  const formatUpdatedAt = (dateStr?: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const hours = date.getHours()
+    const ampm = hours >= 12 ? '오후' : '오전'
+    const formattedHours = hours % 12 || 12
+    return `${ampm} ${formattedHours}시`
+  }
+
+  const getLastUpdatedTime = () => {
+    if (flights.length === 0) return null
+    const dates = flights.map((f) => (f.created_at ? new Date(f.created_at).getTime() : 0))
+    const maxDate = Math.max(...dates)
+    if (maxDate === 0) return null
+    return new Date(maxDate).toISOString()
+  }
+
   const getDestinationCount = (flight: Flight): number => {
     if (!selectedFlights.has(flight.id)) return 0
 
@@ -270,47 +287,49 @@ export default function FlightTable() {
       )}
 
       {/* 빠른 필터 버튼 */}
-      <div className="mb-4 flex gap-2 flex-wrap">
+      <div className="mb-4 flex gap-2 overflow-x-auto flex-nowrap pb-2 no-scrollbar">
         <button
           onClick={() => setQuickFilter('all')}
-          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
-            quickFilter === 'all'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
+          className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'all'
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
         >
           전체
         </button>
         <button
           onClick={() => setQuickFilter('japan')}
-          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
-            quickFilter === 'japan'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
+          className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'japan'
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
         >
           🇯🇵 일본
         </button>
         <button
           onClick={() => setQuickFilter('europe')}
-          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
-            quickFilter === 'europe'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
+          className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'europe'
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
         >
           🌍 유럽·미주
         </button>
         <button
           onClick={() => setQuickFilter('southeast')}
-          className={`px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
-            quickFilter === 'southeast'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
+          className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'southeast'
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
         >
           🌴 동남아
         </button>
+
+        {getLastUpdatedTime() && (
+          <div className="whitespace-nowrap px-2 sm:px-6 py-2 rounded-lg text-xs sm:text-base font-medium bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 flex items-center">
+            Last update : {formatUpdatedAt(getLastUpdatedTime()!)}
+          </div>
+        )}
       </div>
 
       <div className="mb-6 flex flex-wrap gap-4 rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-300 dark:border-gray-700">
@@ -332,13 +351,12 @@ export default function FlightTable() {
           <button
             onClick={() => setIncludeWeekend(!includeWeekend)}
             disabled={quickFilter === 'europe' || region === '유럽미주'}
-            className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${
-              (quickFilter === 'europe' || region === '유럽미주')
-                ? 'bg-blue-500 text-white cursor-not-allowed'
-                : includeWeekend
+            className={`w-[100px] py-2 rounded-lg text-sm font-medium transition-colors ${(quickFilter === 'europe' || region === '유럽미주')
+              ? 'bg-blue-500 text-white cursor-not-allowed'
+              : includeWeekend
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-500 text-white hover:bg-gray-600'
-            }`}
+              }`}
           >
             {(quickFilter === 'europe' || region === '유럽미주') || includeWeekend
               ? '주말 포함'
@@ -416,11 +434,10 @@ export default function FlightTable() {
             <div
               key={flight.id}
               onClick={() => toggleFlightSelection(flight.id)}
-              className={`rounded-lg p-4 shadow cursor-pointer transition-colors border ${
-                isSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 border-blue-500'
-                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700'
-              }`}
+              className={`rounded-lg p-4 shadow cursor-pointer transition-colors border ${isSelected
+                ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 border-blue-500'
+                : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700'
+                }`}
             >
               {/* 체크박스 & 경로 */}
               <div className="flex items-start justify-between mb-3">
@@ -428,7 +445,7 @@ export default function FlightTable() {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="h-4 w-4 cursor-pointer mt-1"
                   />
                   <div>
@@ -500,18 +517,17 @@ export default function FlightTable() {
                 <tr
                   key={flight.id}
                   onClick={() => toggleFlightSelection(flight.id)}
-                  className={`cursor-pointer transition-colors ${
-                    isSelected
-                      ? 'bg-blue-100 dark:bg-blue-900/30'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
+                  className={`cursor-pointer transition-colors ${isSelected
+                    ? 'bg-blue-100 dark:bg-blue-900/30'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
                 >
                   <td className="px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => {}}
+                        onChange={() => { }}
                         className="h-4 w-4 cursor-pointer"
                       />
                       {destCount > 1 && (

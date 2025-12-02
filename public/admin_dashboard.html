@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>뉴스레터 관리자</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+
+        h1 {
+            color: #111827;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        button.delete {
+            background-color: #ef4444;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        button.delete:hover {
+            background-color: #dc2626;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .status-pending {
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        .status-sent {
+            color: #059669;
+            font-weight: bold;
+        }
+
+        #login-area {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-area">
+        <h1>🔐 관리자 로그인</h1>
+        <div class="card" style="max-width: 400px; margin: 0 auto;">
+            <p style="color: #666; margin-bottom: 20px;">Supabase URL과 Key를 입력하세요.</p>
+            <input type="text" id="supabase-url" placeholder="Supabase URL (https://...)"
+                value="https://zswdfvjacwdibihvdqgo.supabase.co">
+            <input type="password" id="supabase-key" placeholder="Supabase Service Role Key (secret!)">
+            <button onclick="login()">로그인</button>
+        </div>
+    </div>
+
+    <div id="app-area" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>📅 뉴스레터 예약 관리</h1>
+            <button onclick="logout()" style="background-color: #6b7280;">로그아웃</button>
+        </div>
+
+        <!-- 예약 추가 폼 -->
+        <div class="card">
+            <h3>새 예약 추가</h3>
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                <div>
+                    <label>발송 날짜</label>
+                    <input type="date" id="new-date">
+                </div>
+                <div>
+                    <label>이메일 제목 (비워두면 기본값)</label>
+                    <input type="text" id="new-subject" placeholder="예: 12월의 첫 특가 항공권 🎄">
+                </div>
+            </div>
+
+            <label>상단 인사말 (Intro)</label>
+            <textarea id="new-intro" rows="3" placeholder="안녕하세요! 오늘은 일본 특가가 많습니다."></textarea>
+
+            <label>하단 맺음말 (Outro)</label>
+            <textarea id="new-outro" rows="3" placeholder="감사합니다. 내일 또 만나요!"></textarea>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+            <h3>📢 하단 광고 설정 (선택사항)</h3>
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+                <label>광고 제목</label>
+                <input type="text" id="new-ad-title" placeholder="예: 🌏 해외여행자 보험 추천">
+
+                <label>광고 설명</label>
+                <input type="text" id="new-ad-desc" placeholder="예: 안전한 여행을 위한 필수 보험 | 24시간 긴급지원">
+
+                <label>광고 링크 URL</label>
+                <input type="text" id="new-ad-link" placeholder="https://...">
+            </div>
+
+            <button onclick="addSchedule()" style="margin-top: 20px;">예약 저장하기</button>
+        </div>
+
+        <!-- 예약 목록 -->
+        <div class="card">
+            <h3>예약 목록</h3>
+            <div id="loading">로딩 중...</div>
+            <table id="schedule-table" class="hidden">
+                <thead>
+                    <tr>
+                        <th>날짜</th>
+                        <th>제목</th>
+                        <th>광고</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-list">
+                    <!-- 자바스크립트로 채워짐 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let supabase;
+
+        // 1. 로그인 (Supabase 연결)
+        function login() {
+            const url = document.getElementById('supabase-url').value;
+            const key = document.getElementById('supabase-key').value;
+
+            if (!url || !key) {
+                alert("URL과 Key를 모두 입력해주세요.");
+                return;
+            }
+
+            try {
+                supabase = window.supabase.createClient(url, key);
+                localStorage.setItem('sb_url', url);
+                localStorage.setItem('sb_key', key);
+                
+                document.getElementById('login-area').classList.add('hidden');
+                document.getElementById('app-area').classList.remove('hidden');
+                
+                loadSchedules();
+            } catch (e) {
+                alert("연결 실패! URL이나 Key를 확인해주세요.");
+                console.error(e);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('sb_key');
+            location.reload();
+        }
+
+        // 자동 로그인 체크
+        window.onload = () => {
+            const savedUrl = localStorage.getItem('sb_url');
+            const savedKey = localStorage.getItem('sb_key');
+            if (savedUrl && savedKey) {
+                document.getElementById('supabase-url').value = savedUrl;
+                document.getElementById('supabase-key').value = savedKey;
+                login();
+            }
+        };
+
+        // 2. 목록 불러오기
+        async function loadSchedules() {
+            const listEl = document.getElementById('schedule-list');
+            const loadingEl = document.getElementById('loading');
+            const tableEl = document.getElementById('schedule-table');
+
+            loadingEl.classList.remove('hidden');
+            tableEl.classList.add('hidden');
+            listEl.innerHTML = '';
+
+            const { data, error } = await supabase
+                .from('newsletter_schedule')
+                .select('*')
+                .order('send_date', { ascending: true });
+
+            if (error) {
+                alert("데이터 불러오기 실패: " + error.message);
+                return;
+            }
+
+            loadingEl.classList.add('hidden');
+            tableEl.classList.remove('hidden');
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                const statusClass = item.status === 'sent' ? 'status-sent' : 'status-pending';
+                const statusText = item.status === 'sent' ? '발송 완료' : '대기 중';
+                const subjectText = item.email_subject || '<span style="color:#999">(기본 제목)</span>';
+                const adText = item.ad_title ? '✅ 있음' : '<span style="color:#ccc">-</span>';
+
+                row.innerHTML = `
+                    <td>${item.send_date}</td>
+                    <td>${subjectText}</td>
+                    <td>${adText}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>
+                        <button class="delete" onclick="deleteSchedule(${item.id})">삭제</button>
+                    </td>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        // 3. 예약 추가하기
+        async function addSchedule() {
+            const date = document.getElementById('new-date').value;
+            const subject = document.getElementById('new-subject').value;
+            const intro = document.getElementById('new-intro').value;
+            const outro = document.getElementById('new-outro').value;
+            
+            // 광고 데이터
+            const adTitle = document.getElementById('new-ad-title').value;
+            const adDesc = document.getElementById('new-ad-desc').value;
+            const adLink = document.getElementById('new-ad-link').value;
+
+            if (!date) {
+                alert("날짜를 선택해주세요!");
+                return;
+            }
+
+            const { error } = await supabase
+                .from('newsletter_schedule')
+                .insert([{
+                    send_date: date,
+                    email_subject: subject || null,
+                    intro_text: intro,
+                    outro_text: outro,
+                    ad_title: adTitle || null,
+                    ad_description: adDesc || null,
+                    ad_link_url: adLink || null,
+                    status: 'pending'
+                }]);
+
+            if (error) {
+                alert("저장 실패: " + error.message);
+            } else {
+                alert("저장되었습니다! 🎉");
+                // 입력창 초기화
+                document.getElementById('new-date').value = '';
+                document.getElementById('new-subject').value = '';
+                document.getElementById('new-intro').value = '';
+                document.getElementById('new-outro').value = '';
+                document.getElementById('new-ad-title').value = '';
+                document.getElementById('new-ad-desc').value = '';
+                document.getElementById('new-ad-link').value = '';
+                loadSchedules();
+            }
+        }
+
+        // 4. 삭제하기
+        async function deleteSchedule(id) {
+            if (!confirm("정말 삭제하시겠습니까?")) return;
+
+            const { error } = await supabase
+                .from('newsletter_schedule')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert("삭제 실패: " + error.message);
+            } else {
+                loadSchedules();
+            }
+        }
+    </script>
+</body>
+
+</html>
