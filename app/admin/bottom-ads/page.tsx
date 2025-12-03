@@ -145,7 +145,14 @@ export default function BottomAdsAdminPage() {
                 b.id === booking.id ? { ...b, status: 'rejected' } : b
             ));
 
-            alert('환불 및 거절 처리가 완료되었습니다.');
+            // Open Mail Client
+            const subject = `[Flight Viewer] 하단 배너 광고 예약이 거절/환불되었습니다 (${booking.selected_date})`;
+            const body = `안녕하세요, ${booking.buyer_name}님.\n\n신청하신 ${booking.selected_date} 하단 배너 광고 예약이 부득이하게 거절되었음을 알려드립니다.\n결제하신 금액은 전액 환불 처리되었습니다.\n\n[거절 사유]\n(여기에 거절 사유를 입력해주세요)\n\n감사합니다.\n\nFlight Viewer 드림`;
+
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${booking.buyer_contact}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(gmailUrl, '_blank');
+
+            alert('환불 및 거절 처리가 완료되었습니다. 메일 발송 창이 열립니다.');
             fetchBookings(); // Refresh to be sure
 
         } catch (err: any) {
