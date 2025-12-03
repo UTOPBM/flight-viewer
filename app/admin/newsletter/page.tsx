@@ -40,12 +40,25 @@ interface NewsletterSchedule {
     ad_link_url: string | null;
     status: string;
     created_at: string;
+    status: string;
+    created_at: string;
+}
+
+interface ListmonkCampaign {
+    id: number;
+    name: string;
+    subject: string;
+    body: string;
+    status: string;
+    tags: string[];
 }
 
 export default function NewsletterAdminPage() {
     const [bookings, setBookings] = useState<AdBooking[]>([]);
     const [legacyAds, setLegacyAds] = useState<Advertisement[]>([]);
     const [schedules, setSchedules] = useState<NewsletterSchedule[]>([]);
+    const [campaigns, setCampaigns] = useState<ListmonkCampaign[]>([]);
+    const [selectedCampaign, setSelectedCampaign] = useState<ListmonkCampaign | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [selectedBooking, setSelectedBooking] = useState<AdBooking | null>(null);
@@ -127,6 +140,18 @@ export default function NewsletterAdminPage() {
         if (bookingData) setBookings(bookingData as AdBooking[]);
         if (legacyData) setLegacyAds(legacyData as Advertisement[]);
         if (scheduleData) setSchedules(scheduleData as NewsletterSchedule[]);
+
+        // Fetch Listmonk Campaigns
+        try {
+            const res = await fetch('/api/admin/newsletter/campaigns?status=draft');
+            if (res.ok) {
+                const data = await res.json();
+                setCampaigns(data.results || []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch campaigns', e);
+        }
+
         setLoading(false);
     }
 
@@ -236,6 +261,61 @@ export default function NewsletterAdminPage() {
             return;
         }
 
+        // If a Listmonk campaign is selected, update and schedule it
+        if (selectedCampaign) {
+            if (!confirm(`'${selectedCampaign.name}' 캠페인을 ${scheduleForm.send_date}에 발송 예약하시겠습니까?`)) return;
+
+            try {
+                // 1. Update Campaign Content
+                const updateRes = await fetch('/api/admin/newsletter/campaigns', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: selectedCampaign.id,
+                        subject: scheduleForm.email_subject,
+                        body: scheduleForm.intro_text // Assuming intro_text is the main body for now, or we append it
+                    })
+                });
+
+                if (!updateRes.ok) throw new Error('캠페인 수정 실패');
+
+                // 2. Schedule Campaign
+                // Listmonk expects full timestamp, e.g., "2025-12-03 09:00:00"
+                // Defaulting to 08:00 AM KST (which is 23:00 UTC previous day, but Listmonk uses server time usually)
+                // Let's assume user wants 8 AM.
+                const sendAt = `${scheduleForm.send_date} 08:00:00`;
+
+                const scheduleRes = await fetch('/api/admin/newsletter/campaigns', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: selectedCampaign.id,
+                        send_at: sendAt
+                    })
+                });
+
+                if (!scheduleRes.ok) throw new Error('캠페인 예약 실패');
+
+                alert('Listmonk 캠페인이 성공적으로 예약되었습니다!');
+                fetchData();
+                setSelectedCampaign(null);
+                setScheduleForm({
+                    send_date: '',
+                    email_subject: '',
+                    intro_text: '',
+                    outro_text: '',
+                    ad_title: '',
+                    ad_description: '',
+                    ad_link_url: ''
+                });
+
+            } catch (e: any) {
+                alert('오류 발생: ' + e.message);
+            }
+            return;
+        }
+
+        // Original Logic (Supabase Schedule)
         const { error } = await supabase
             .from('newsletter_schedule')
             .insert([{
@@ -369,6 +449,32 @@ export default function NewsletterAdminPage() {
                                 {/* Newsletter Schedule Form for Selected Date */}
                                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                     <h4 className="text-sm font-bold text-blue-900 mb-3">📧 뉴스레터 발송 예약</h4>
+
+                                    {/* Campaign Selector */}
+                                    <div className="mb-3">
+                                        <label className="block text-xs font-bold text-blue-800 mb-1">Listmonk 캠페인 연동 (선택)</label>
+                                        <select
+                                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white"
+                                            value={selectedCampaign?.id || ''}
+                                            onChange={(e) => {
+                                                const campaign = campaigns.find(c => c.id === Number(e.target.value));
+                                                setSelectedCampaign(campaign || null);
+                                                if (campaign) {
+                                                    setScheduleForm(prev => ({
+                                                        ...prev,
+                                                        email_subject: campaign.subject,
+                                                        intro_text: campaign.body
+                                                    }));
+                                                }
+                                            }}
+                                        >
+                                            <option value="">-- 연동 안함 (직접 입력) --</option>
+                                            {campaigns.map(c => (
+                                                <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     <div className="space-y-3">
                                         <input
                                             type="date"
