@@ -40,8 +40,6 @@ interface NewsletterSchedule {
     ad_link_url: string | null;
     status: string;
     created_at: string;
-    status: string;
-    created_at: string;
 }
 
 interface ListmonkCampaign {
