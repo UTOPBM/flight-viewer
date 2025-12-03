@@ -143,7 +143,7 @@ export default function NewsletterAdminPage() {
         try {
             const res = await fetch('/api/admin/newsletter/campaigns?status=draft');
             if (res.ok) {
-                const data = await res.json();
+                const data = await res.json() as { results: ListmonkCampaign[] };
                 setCampaigns(data.results || []);
             }
         } catch (e) {
