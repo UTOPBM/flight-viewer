@@ -1,22 +1,39 @@
+'use client';
+
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
-
-export default async function AdminLayout({
+export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const supabase = await createClient();
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+    const supabase = createClient();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    useEffect(() => {
+        const checkUser = async () => {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
 
-    if (!user) {
-        return redirect('/login');
+            if (!user) {
+                router.replace('/login');
+            } else {
+                setIsLoading(false);
+            }
+        };
+
+        checkUser();
+    }, [router, supabase]);
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
+
     return (
         <div className="min-h-screen bg-gray-50">
             <nav className="bg-white shadow-sm border-b border-gray-200">

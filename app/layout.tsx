@@ -1,5 +1,5 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://flight-viewer.pages.dev'),
@@ -46,18 +46,18 @@ export const metadata: Metadata = {
     },
   },
 
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
-
   verification: {
     // Google Search Console 등록 후 추가
     // google: 'your-verification-code',
     // Naver Search Advisor 등록 후 추가
     // naver: 'your-naver-verification-code',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 }
 
 export default function RootLayout({
