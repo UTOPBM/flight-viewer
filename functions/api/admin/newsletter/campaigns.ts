@@ -32,7 +32,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(request.url);
 
     // Basic Auth Header
-    const authHeader = `Basic ${btoa(`${env.LISTMONK_USERNAME}: ${env.LISTMONK_PASSWORD}`)}`;
+    const username = env.LISTMONK_USERNAME.trim();
+    const password = env.LISTMONK_PASSWORD.trim();
+    const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
     const headers = {
         'Authorization': authHeader,
         'Content-Type': 'application/json'
@@ -41,7 +43,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     // Debug Logging
     const safeUrl = env.LISTMONK_API_URL.replace(/\/$/, ''); // Remove trailing slash if present
     console.log(`Listmonk API Request: ${safeUrl}/api/campaigns`);
-    console.log(`Listmonk Username: ${env.LISTMONK_USERNAME}`);
+    console.log(`Listmonk Username: ${username}`);
     // Do not log password
 
     try {
