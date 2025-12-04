@@ -658,7 +658,7 @@ export default function BottomAdsAdminPage() {
                                                         .from('ad-images')
                                                         .getPublicUrl(filePath);
 
-                                                    setEditForm({ ...editForm, image_url: publicUrl });
+                                                    setEditForm(prev => ({ ...prev, image_url: publicUrl }));
                                                 } catch (error: any) {
                                                     alert('이미지 업로드 실패: ' + error.message);
                                                 }

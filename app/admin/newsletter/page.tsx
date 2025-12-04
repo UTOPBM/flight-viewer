@@ -141,13 +141,18 @@ export default function NewsletterAdminPage() {
 
         // Fetch Listmonk Campaigns
         try {
+            console.log('Fetching Listmonk campaigns...');
             const res = await fetch('/api/admin/newsletter/campaigns?status=draft');
             if (res.ok) {
                 const data = await res.json() as { results: ListmonkCampaign[] };
+                console.log('Campaigns fetched:', data.results);
                 setCampaigns(data.results || []);
+            } else {
+                const errText = await res.text();
+                console.error('Failed to fetch campaigns:', res.status, res.statusText, errText);
             }
         } catch (e) {
-            console.error('Failed to fetch campaigns', e);
+            console.error('Exception fetching campaigns:', e);
         }
 
         setLoading(false);
