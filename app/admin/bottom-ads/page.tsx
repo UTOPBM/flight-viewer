@@ -233,6 +233,7 @@ export default function BottomAdsAdminPage() {
     };
 
     const saveEdit = async () => {
+        console.log('Saving Edit Form:', editForm); // Debug Log
         if (editingBooking) {
             // Conflict Check if date changed
             if (editForm.selected_date !== editingBooking.selected_date) {

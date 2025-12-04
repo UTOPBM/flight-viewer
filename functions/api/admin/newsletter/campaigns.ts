@@ -50,7 +50,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const page = url.searchParams.get('page') || '1';
             const status = url.searchParams.get('status') || 'draft'; // Default to draft
 
-            const response = await fetch(`${env.LISTMONK_API_URL}/api/campaigns?page = ${page}&per_page = 50&order_by = created_at&order = DESC`, {
+            const response = await fetch(`${safeUrl}/api/campaigns?page=${page}&per_page=50&order_by=created_at&order=DESC`, {
                 headers
             });
 
@@ -73,7 +73,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             if (!id) return new Response('Missing campaign ID', { status: 400 });
 
             // First get the campaign to preserve other fields
-            const getRes = await fetch(`${env.LISTMONK_API_URL}/api/campaigns/${id}`, { headers });
+            const getRes = await fetch(`${safeUrl}/api/campaigns/${id}`, { headers });
             const currentData = await getRes.json() as ListmonkCampaignResponse;
             const currentCampaign = currentData.data;
 
@@ -89,7 +89,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 messenger: currentCampaign.messenger
             };
 
-            const response = await fetch(`${env.LISTMONK_API_URL}/api/campaigns/${id}`, {
+            const response = await fetch(`${safeUrl}/api/campaigns/${id}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(payload)
@@ -115,7 +115,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             // Listmonk might require a specific endpoint or just a status update.
             // Usually it's a status update to 'scheduled' with 'send_at'.
 
-            const response = await fetch(`${env.LISTMONK_API_URL}/api/campaigns/${id}/status`, {
+            const response = await fetch(`${safeUrl}/api/campaigns/${id}/status`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify({ status: 'scheduled', send_at }) // Format: "2025-12-25 10:00:00"
