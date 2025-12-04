@@ -56,7 +56,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 headers
             });
 
-            if (!response.ok) throw new Error(`Listmonk API Error: ${response.statusText}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.log(`Listmonk Error Response: ${errorText}`);
+                throw new Error(`Listmonk API Error: ${response.status} ${response.statusText} - ${errorText}`);
+            }
 
             const data = await response.json() as ListmonkCampaignsResponse;
             // Filter by status if needed (Listmonk API might not support filtering by status in the list endpoint directly, so we filter here)
