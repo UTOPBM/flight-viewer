@@ -4,12 +4,35 @@ interface Env {
     LISTMONK_PASSWORD: string;
 }
 
+interface ListmonkCampaign {
+    id: number;
+    name: string;
+    subject: string;
+    body: string;
+    tags: string[];
+    lists: { id: number; name: string }[];
+    type: string;
+    content_type: string;
+    messenger: string;
+    status: string;
+}
+
+interface ListmonkCampaignResponse {
+    data: ListmonkCampaign;
+}
+
+interface ListmonkCampaignsResponse {
+    data: {
+        results: ListmonkCampaign[];
+    };
+}
+
 export const onRequest: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
     const url = new URL(request.url);
 
     // Basic Auth Header
-    const authHeader = `Basic ${btoa(`${env.LISTMONK_USERNAME}:${env.LISTMONK_PASSWORD}`)}`;
+    const authHeader = `Basic ${btoa(`${env.LISTMONK_USERNAME}: ${env.LISTMONK_PASSWORD}`)}`;
     const headers = {
         'Authorization': authHeader,
         'Content-Type': 'application/json'
@@ -21,16 +44,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const page = url.searchParams.get('page') || '1';
             const status = url.searchParams.get('status') || 'draft'; // Default to draft
 
-            const response = await fetch(`${env.LISTMONK_API_URL}/api/campaigns?page=${page}&per_page=50&order_by=created_at&order=DESC`, {
+            const response = await fetch(`${env.LISTMONK_API_URL}/api/campaigns?page = ${page}&per_page = 50&order_by = created_at&order = DESC`, {
                 headers
             });
 
             if (!response.ok) throw new Error(`Listmonk API Error: ${response.statusText}`);
 
-            const data = await response.json() as any;
+            const data = await response.json() as ListmonkCampaignsResponse;
             // Filter by status if needed (Listmonk API might not support filtering by status in the list endpoint directly, so we filter here)
             // Actually Listmonk API docs say /api/campaigns returns all. We can filter in memory.
-            const campaigns = (data.data.results as any[]).filter((c: any) => c.status === status);
+            const campaigns = data.data.results.filter((c) => c.status === status);
 
             return new Response(JSON.stringify({ results: campaigns }), {
                 headers: { 'Content-Type': 'application/json' }
@@ -45,7 +68,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
             // First get the campaign to preserve other fields
             const getRes = await fetch(`${env.LISTMONK_API_URL}/api/campaigns/${id}`, { headers });
-            const currentData = await getRes.json();
+            const currentData = await getRes.json() as ListmonkCampaignResponse;
             const currentCampaign = currentData.data;
 
             const payload = {
