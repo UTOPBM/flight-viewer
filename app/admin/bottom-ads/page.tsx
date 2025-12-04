@@ -39,6 +39,7 @@ export default function BottomAdsAdminPage() {
     const [editingBooking, setEditingBooking] = useState<AdBooking | null>(null);
     const [editingLegacy, setEditingLegacy] = useState<LegacyAd | null>(null);
     const [editForm, setEditForm] = useState<any>({});
+    const [isUploading, setIsUploading] = useState(false);
 
     const supabase = createClient();
 
@@ -643,6 +644,7 @@ export default function BottomAdsAdminPage() {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
 
+                                                setIsUploading(true);
                                                 try {
                                                     const fileExt = file.name.split('.').pop();
                                                     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -661,6 +663,8 @@ export default function BottomAdsAdminPage() {
                                                     setEditForm((prev: any) => ({ ...prev, image_url: publicUrl }));
                                                 } catch (error: any) {
                                                     alert('이미지 업로드 실패: ' + error.message);
+                                                } finally {
+                                                    setIsUploading(false);
                                                 }
                                             }}
                                             className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
@@ -706,9 +710,10 @@ export default function BottomAdsAdminPage() {
                             </button>
                             <button
                                 onClick={saveEdit}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                                disabled={isUploading}
+                                className={`px-4 py-2 text-sm font-medium text-white rounded-md ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                             >
-                                저장
+                                {isUploading ? '업로드 중...' : '저장'}
                             </button>
                         </div>
                     </div>

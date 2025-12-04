@@ -38,6 +38,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         'Content-Type': 'application/json'
     };
 
+    // Debug Logging
+    const safeUrl = env.LISTMONK_API_URL.replace(/\/$/, ''); // Remove trailing slash if present
+    console.log(`Listmonk API Request: ${safeUrl}/api/campaigns`);
+    console.log(`Listmonk Username: ${env.LISTMONK_USERNAME}`);
+    // Do not log password
+
     try {
         // GET: Fetch Campaigns
         if (request.method === 'GET') {
