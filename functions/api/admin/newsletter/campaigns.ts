@@ -142,9 +142,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                     lists: tpl.lists.map((l: any) => l.id),
                     type: tpl.type,
                     content_type: tpl.content_type,
-                    messenger: tpl.messenger
+                    messenger: tpl.messenger,
+                    send_at: send_at, // Set date during creation
+                    status: 'scheduled' // Set status to scheduled immediately
                 };
-                console.log('Creating New Campaign:', JSON.stringify(createPayload));
+                console.log('Creating New Campaign (Scheduled):', JSON.stringify(createPayload));
 
                 const createRes = await fetch(`${safeUrl}/api/campaigns`, {
                     method: 'POST',
@@ -154,24 +156,31 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
                 if (!createRes.ok) {
                     const err = await createRes.text();
-                    throw new Error(`Failed to create new campaign: ${err}`);
+                    // If immediate scheduling fails (e.g. date in past), try creating as draft
+                    console.error('Creation failed, retrying as draft:', err);
+
+                    const draftPayload = { ...createPayload, status: 'draft', send_at: null };
+                    const retryRes = await fetch(`${safeUrl}/api/campaigns`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(draftPayload)
+                    });
+
+                    if (!retryRes.ok) {
+                        const retryErr = await retryRes.text();
+                        throw new Error(`Failed to create campaign: ${retryErr}`);
+                    }
+
+                    const retryResult = await retryRes.json() as ListmonkCampaignResponse;
+                    // Throw original error to let user know scheduling failed, but draft saved?
+                    // No, better to fail hard or return success with warning. 
+                    // Let's just throw the original error for now to be clear.
+                    throw new Error(`Failed to schedule/create campaign: ${err}`);
                 }
 
                 const createResult = await createRes.json() as ListmonkCampaignResponse;
                 const newCampaignId = createResult.data.id;
-                console.log(`New Campaign Created: ID ${newCampaignId}`);
-
-                // 3. Schedule the New Campaign
-                const scheduleRes = await fetch(`${safeUrl}/api/campaigns/${newCampaignId}/status`, {
-                    method: 'PUT',
-                    headers,
-                    body: JSON.stringify({ status: 'scheduled', send_at })
-                });
-
-                if (!scheduleRes.ok) {
-                    const err = await scheduleRes.text();
-                    throw new Error(`Failed to schedule new campaign: ${err}`);
-                }
+                console.log(`New Campaign Created & Scheduled: ID ${newCampaignId}`);
 
                 return new Response(JSON.stringify({ success: true, new_campaign_id: newCampaignId }), {
                     headers: { 'Content-Type': 'application/json' }
