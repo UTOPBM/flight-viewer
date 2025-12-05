@@ -287,8 +287,9 @@ export default function NewsletterAdminPage() {
                 }
 
                 // 2. Schedule Campaign
-                // Listmonk expects full timestamp, e.g., "2025-12-03 09:00:00"
-                const sendAt = `${scheduleForm.send_date} ${scheduleForm.send_time || '09:00'}:00`;
+                // Listmonk API requires RFC3339/ISO8601 format (e.g., "2025-12-03T09:00:00Z")
+                const dateTimeStr = `${scheduleForm.send_date}T${scheduleForm.send_time || '09:00'}:00`;
+                const sendAt = new Date(dateTimeStr).toISOString();
 
                 const scheduleRes = await fetch('/api/admin/newsletter/campaigns', {
                     method: 'POST',
@@ -464,32 +465,26 @@ export default function NewsletterAdminPage() {
                                     {/* Campaign Selector */}
                                     <div className="mb-3">
                                         <label className="block text-xs font-bold text-blue-800 mb-1">Listmonk 캠페인 연동 (선택)</label>
-                                        <div className="relative">
-                                            <select
-                                                className="w-full px-4 py-3 border border-blue-200 rounded-lg text-sm bg-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-gray-700"
-                                                value={selectedCampaign?.id || ''}
-                                                onChange={(e) => {
-                                                    const campaign = campaigns.find(c => c.id === Number(e.target.value));
-                                                    setSelectedCampaign(campaign || null);
-                                                    if (campaign) {
-                                                        setScheduleForm(prev => ({
-                                                            ...prev,
-                                                            email_subject: campaign.subject,
-                                                            intro_text: campaign.body
-                                                        }));
-                                                    }
-                                                }}
-                                                style={{ backgroundImage: 'none' }} // Remove default arrow if needed or use custom SVG
-                                            >
-                                                <option value="">-- 연동 안함 (직접 입력) --</option>
-                                                {campaigns.map(c => (
-                                                    <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>
-                                                ))}
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                                            </div>
-                                        </div>
+                                        <select
+                                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white text-gray-900"
+                                            value={selectedCampaign?.id || ''}
+                                            onChange={(e) => {
+                                                const campaign = campaigns.find(c => c.id === Number(e.target.value));
+                                                setSelectedCampaign(campaign || null);
+                                                if (campaign) {
+                                                    setScheduleForm(prev => ({
+                                                        ...prev,
+                                                        email_subject: campaign.subject,
+                                                        intro_text: campaign.body
+                                                    }));
+                                                }
+                                            }}
+                                        >
+                                            <option value="">-- 연동 안함 (직접 입력) --</option>
+                                            {campaigns.map(c => (
+                                                <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="space-y-3">
