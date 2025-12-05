@@ -94,8 +94,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 lists: currentCampaign.lists.map((l: any) => l.id),
                 type: currentCampaign.type,
                 content_type: currentCampaign.content_type,
-                messenger: currentCampaign.messenger,
-                send_at: null // Explicitly clear send_at to avoid validation errors during update
+                messenger: currentCampaign.messenger
+                // Omit send_at entirely to avoid validation errors
             };
             console.log('Update Payload:', JSON.stringify(payload));
 
