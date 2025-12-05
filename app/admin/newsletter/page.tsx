@@ -345,6 +345,7 @@ export default function NewsletterAdminPage() {
             alert('저장되었습니다! 🎉');
             setScheduleForm({
                 send_date: '',
+                send_time: '09:00',
                 email_subject: '',
                 intro_text: '',
                 outro_text: '',
