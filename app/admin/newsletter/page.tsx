@@ -296,11 +296,6 @@ export default function NewsletterAdminPage() {
                 const result = await response.json() as any;
                 console.log('New Campaign Scheduled:', result.new_campaign_id);
 
-                if (!scheduleRes.ok) {
-                    const errJson = await scheduleRes.json().catch(() => ({ error: '예약 응답 파싱 실패' })) as any;
-                    throw new Error(`캠페인 예약 실패: ${errJson.error || scheduleRes.statusText}`);
-                }
-
                 alert('Listmonk 캠페인이 성공적으로 예약되었습니다!');
                 fetchData();
                 setSelectedCampaign(null);
