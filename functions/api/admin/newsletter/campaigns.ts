@@ -116,30 +116,87 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             });
         }
 
-        // POST: Schedule Campaign (Change status to scheduled)
+        // POST: Schedule Campaign (Two modes: Simple Schedule or Clone & Schedule)
         if (request.method === 'POST') {
-            const { id, send_at } = await request.json() as any;
+            const body = await request.json() as any;
+            const { id, send_at, template_id, subject, intro_text, name } = body;
 
-            if (!id || !send_at) return new Response('Missing ID or send_at', { status: 400 });
+            // Mode 1: Clone & Schedule (New Workflow)
+            if (template_id && send_at) {
+                // 1. Fetch Template Campaign
+                const tplRes = await fetch(`${safeUrl}/api/campaigns/${template_id}`, { headers });
+                if (!tplRes.ok) throw new Error('Failed to fetch template campaign');
+                const tplData = await tplRes.json() as ListmonkCampaignResponse;
+                const tpl = tplData.data;
 
-            // To schedule, we change status to 'scheduled' and provide send_at
-            // Listmonk might require a specific endpoint or just a status update.
-            // Usually it's a status update to 'scheduled' with 'send_at'.
+                // 2. Create New Campaign
+                // Append date to name to make it unique and identifiable
+                const sendDate = send_at.split('T')[0];
+                const newName = `[${sendDate}] ${name || tpl.name}`;
 
-            const response = await fetch(`${safeUrl}/api/campaigns/${id}/status`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify({ status: 'scheduled', send_at }) // Format: "2025-12-25 10:00:00"
-            });
+                const createPayload = {
+                    name: newName,
+                    subject: subject || tpl.subject,
+                    body: intro_text || tpl.body, // Use provided body or fallback to template
+                    tags: tpl.tags,
+                    lists: tpl.lists.map((l: any) => l.id),
+                    type: tpl.type,
+                    content_type: tpl.content_type,
+                    messenger: tpl.messenger
+                };
+                console.log('Creating New Campaign:', JSON.stringify(createPayload));
 
-            if (!response.ok) {
-                const err = await response.text();
-                throw new Error(`Schedule Failed: ${err}`);
+                const createRes = await fetch(`${safeUrl}/api/campaigns`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(createPayload)
+                });
+
+                if (!createRes.ok) {
+                    const err = await createRes.text();
+                    throw new Error(`Failed to create new campaign: ${err}`);
+                }
+
+                const createResult = await createRes.json() as ListmonkCampaignResponse;
+                const newCampaignId = createResult.data.id;
+                console.log(`New Campaign Created: ID ${newCampaignId}`);
+
+                // 3. Schedule the New Campaign
+                const scheduleRes = await fetch(`${safeUrl}/api/campaigns/${newCampaignId}/status`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({ status: 'scheduled', send_at })
+                });
+
+                if (!scheduleRes.ok) {
+                    const err = await scheduleRes.text();
+                    throw new Error(`Failed to schedule new campaign: ${err}`);
+                }
+
+                return new Response(JSON.stringify({ success: true, new_campaign_id: newCampaignId }), {
+                    headers: { 'Content-Type': 'application/json' }
+                });
             }
 
-            return new Response(JSON.stringify({ success: true }), {
-                headers: { 'Content-Type': 'application/json' }
-            });
+            // Mode 2: Legacy Schedule (Existing ID)
+            if (id && send_at) {
+                const response = await fetch(`${safeUrl}/api/campaigns/${id}/status`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({ status: 'scheduled', send_at })
+                });
+
+                if (!response.ok) {
+                    const err = await response.text();
+                    throw new Error(`Schedule Failed: ${err}`);
+                }
+
+                return new Response(JSON.stringify({ success: true }), {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
+            return new Response('Missing required fields (id+send_at OR template_id+send_at)', { status: 400 });
         }
 
         return new Response('Method Not Allowed', { status: 405 });

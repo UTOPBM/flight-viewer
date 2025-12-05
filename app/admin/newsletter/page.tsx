@@ -270,38 +270,31 @@ export default function NewsletterAdminPage() {
             if (!confirm(`'${selectedCampaign.name}' 캠페인을 ${scheduleForm.send_date} ${scheduleForm.send_time}에 발송 예약하시겠습니까?`)) return;
 
             try {
-                // 1. Update Campaign Content
-                // Calculate send_at first to include in update (to pass validation)
+                // Clone & Schedule Workflow
+                // This creates a NEW campaign based on the selected one, preserving the template.
                 const dateTimeStr = `${scheduleForm.send_date}T${scheduleForm.send_time || '09:00'}:00`;
                 const sendAt = new Date(dateTimeStr).toISOString();
 
-                const updateRes = await fetch('/api/admin/newsletter/campaigns', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: selectedCampaign.id,
-                        name: selectedCampaign.name, // Keep existing name
-                        subject: scheduleForm.email_subject,
-                        body: scheduleForm.intro_text, // Simplified mapping
-                        tags: selectedCampaign.tags,
-                        send_at: sendAt // Include future date to allow update
-                    })
-                });
-
-                if (!updateRes.ok) {
-                    const errJson = await updateRes.json().catch(() => ({ error: '수정 응답 파싱 실패' })) as any;
-                    throw new Error(`캠페인 수정 실패: ${errJson.error || updateRes.statusText}`);
-                }
-
-                // 2. Schedule Campaign (Status Change)
-                const scheduleRes = await fetch('/api/admin/newsletter/campaigns', {
+                const response = await fetch('/api/admin/newsletter/campaigns', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        id: selectedCampaign.id,
+                        template_id: selectedCampaign.id, // Use current as template
+                        name: selectedCampaign.name,
+                        subject: scheduleForm.email_subject,
+                        intro_text: scheduleForm.intro_text,
                         send_at: sendAt
                     })
                 });
+
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({ error: '응답 파싱 실패' })) as any;
+                    throw new Error(`캠페인 예약 실패: ${errJson.error || response.statusText}`);
+                }
+
+                // Success
+                const result = await response.json() as any;
+                console.log('New Campaign Scheduled:', result.new_campaign_id);
 
                 if (!scheduleRes.ok) {
                     const errJson = await scheduleRes.json().catch(() => ({ error: '예약 응답 파싱 실패' })) as any;
