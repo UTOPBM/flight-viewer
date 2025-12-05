@@ -83,6 +83,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const currentData = await getRes.json() as ListmonkCampaignResponse;
             const currentCampaign = currentData.data;
 
+            console.log('Current Campaign for Update:', JSON.stringify(currentCampaign));
+
             const payload = {
                 name: name || currentCampaign.name,
                 subject: subject || currentCampaign.subject,
@@ -92,8 +94,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 lists: currentCampaign.lists.map((l: any) => l.id),
                 type: currentCampaign.type,
                 content_type: currentCampaign.content_type,
-                messenger: currentCampaign.messenger
+                messenger: currentCampaign.messenger,
+                send_at: null // Explicitly clear send_at to avoid validation errors during update
             };
+            console.log('Update Payload:', JSON.stringify(payload));
 
             const response = await fetch(`${safeUrl}/api/campaigns/${id}`, {
                 method: 'PUT',
