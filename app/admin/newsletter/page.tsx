@@ -77,6 +77,7 @@ export default function NewsletterAdminPage() {
     // Newsletter Schedule Form State
     const [scheduleForm, setScheduleForm] = useState({
         send_date: '',
+        send_time: '09:00', // Default time
         email_subject: '',
         intro_text: '',
         outro_text: '',
@@ -266,7 +267,7 @@ export default function NewsletterAdminPage() {
 
         // If a Listmonk campaign is selected, update and schedule it
         if (selectedCampaign) {
-            if (!confirm(`'${selectedCampaign.name}' 캠페인을 ${scheduleForm.send_date}에 발송 예약하시겠습니까?`)) return;
+            if (!confirm(`'${selectedCampaign.name}' 캠페인을 ${scheduleForm.send_date} ${scheduleForm.send_time}에 발송 예약하시겠습니까?`)) return;
 
             try {
                 // 1. Update Campaign Content
@@ -280,13 +281,14 @@ export default function NewsletterAdminPage() {
                     })
                 });
 
-                if (!updateRes.ok) throw new Error('캠페인 수정 실패');
+                if (!updateRes.ok) {
+                    const errJson = await updateRes.json().catch(() => ({ error: '수정 응답 파싱 실패' }));
+                    throw new Error(`캠페인 수정 실패: ${errJson.error || updateRes.statusText}`);
+                }
 
                 // 2. Schedule Campaign
                 // Listmonk expects full timestamp, e.g., "2025-12-03 09:00:00"
-                // Defaulting to 08:00 AM KST (which is 23:00 UTC previous day, but Listmonk uses server time usually)
-                // Let's assume user wants 8 AM.
-                const sendAt = `${scheduleForm.send_date} 08:00:00`;
+                const sendAt = `${scheduleForm.send_date} ${scheduleForm.send_time || '09:00'}:00`;
 
                 const scheduleRes = await fetch('/api/admin/newsletter/campaigns', {
                     method: 'POST',
@@ -297,13 +299,17 @@ export default function NewsletterAdminPage() {
                     })
                 });
 
-                if (!scheduleRes.ok) throw new Error('캠페인 예약 실패');
+                if (!scheduleRes.ok) {
+                    const errJson = await scheduleRes.json().catch(() => ({ error: '예약 응답 파싱 실패' }));
+                    throw new Error(`캠페인 예약 실패: ${errJson.error || scheduleRes.statusText}`);
+                }
 
                 alert('Listmonk 캠페인이 성공적으로 예약되었습니다!');
                 fetchData();
                 setSelectedCampaign(null);
                 setScheduleForm({
                     send_date: '',
+                    send_time: '09:00',
                     email_subject: '',
                     intro_text: '',
                     outro_text: '',
@@ -313,6 +319,7 @@ export default function NewsletterAdminPage() {
                 });
 
             } catch (e: any) {
+                console.error(e);
                 alert('오류 발생: ' + e.message);
             }
             return;
@@ -456,35 +463,56 @@ export default function NewsletterAdminPage() {
                                     {/* Campaign Selector */}
                                     <div className="mb-3">
                                         <label className="block text-xs font-bold text-blue-800 mb-1">Listmonk 캠페인 연동 (선택)</label>
-                                        <select
-                                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white"
-                                            value={selectedCampaign?.id || ''}
-                                            onChange={(e) => {
-                                                const campaign = campaigns.find(c => c.id === Number(e.target.value));
-                                                setSelectedCampaign(campaign || null);
-                                                if (campaign) {
-                                                    setScheduleForm(prev => ({
-                                                        ...prev,
-                                                        email_subject: campaign.subject,
-                                                        intro_text: campaign.body
-                                                    }));
-                                                }
-                                            }}
-                                        >
-                                            <option value="">-- 연동 안함 (직접 입력) --</option>
-                                            {campaigns.map(c => (
-                                                <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>
-                                            ))}
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full px-4 py-3 border border-blue-200 rounded-lg text-sm bg-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-gray-700"
+                                                value={selectedCampaign?.id || ''}
+                                                onChange={(e) => {
+                                                    const campaign = campaigns.find(c => c.id === Number(e.target.value));
+                                                    setSelectedCampaign(campaign || null);
+                                                    if (campaign) {
+                                                        setScheduleForm(prev => ({
+                                                            ...prev,
+                                                            email_subject: campaign.subject,
+                                                            intro_text: campaign.body
+                                                        }));
+                                                    }
+                                                }}
+                                                style={{ backgroundImage: 'none' }} // Remove default arrow if needed or use custom SVG
+                                            >
+                                                <option value="">-- 연동 안함 (직접 입력) --</option>
+                                                {campaigns.map(c => (
+                                                    <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-3">
-                                        <input
-                                            type="date"
-                                            value={scheduleForm.send_date}
-                                            onChange={(e) => setScheduleForm({ ...scheduleForm, send_date: e.target.value })}
-                                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
-                                        />
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-bold text-gray-700 mb-1">발송 날짜</label>
+                                                <input
+                                                    type="date"
+                                                    value={scheduleForm.send_date}
+                                                    onChange={(e) => setScheduleForm({ ...scheduleForm, send_date: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+                                                />
+                                            </div>
+                                            <div className="w-1/3">
+                                                <label className="block text-xs font-bold text-gray-700 mb-1">시간</label>
+                                                <input
+                                                    type="time"
+                                                    value={scheduleForm.send_time}
+                                                    onChange={(e) => setScheduleForm({ ...scheduleForm, send_time: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm"
+                                                />
+                                            </div>
+                                        </div>
+
                                         <input
                                             type="text"
                                             placeholder="이메일 제목"
