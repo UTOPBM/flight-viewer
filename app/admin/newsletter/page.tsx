@@ -282,7 +282,7 @@ export default function NewsletterAdminPage() {
                 });
 
                 if (!updateRes.ok) {
-                    const errJson = await updateRes.json().catch(() => ({ error: '수정 응답 파싱 실패' }));
+                    const errJson = await updateRes.json().catch(() => ({ error: '수정 응답 파싱 실패' })) as any;
                     throw new Error(`캠페인 수정 실패: ${errJson.error || updateRes.statusText}`);
                 }
 
@@ -300,7 +300,7 @@ export default function NewsletterAdminPage() {
                 });
 
                 if (!scheduleRes.ok) {
-                    const errJson = await scheduleRes.json().catch(() => ({ error: '예약 응답 파싱 실패' }));
+                    const errJson = await scheduleRes.json().catch(() => ({ error: '예약 응답 파싱 실패' })) as any;
                     throw new Error(`캠페인 예약 실패: ${errJson.error || scheduleRes.statusText}`);
                 }
 
