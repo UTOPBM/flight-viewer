@@ -74,7 +74,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
         // PUT: Update Campaign
         if (request.method === 'PUT') {
-            const { id, name, subject, body, tags } = await request.json() as any;
+            const { id, name, subject, body, tags, send_at } = await request.json() as any;
 
             if (!id) return new Response('Missing campaign ID', { status: 400 });
 
@@ -94,8 +94,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 lists: currentCampaign.lists.map((l: any) => l.id),
                 type: currentCampaign.type,
                 content_type: currentCampaign.content_type,
-                messenger: currentCampaign.messenger
-                // Omit send_at entirely to avoid validation errors
+                messenger: currentCampaign.messenger,
+                // Include send_at if provided to satisfy validation (must be future date)
+                ...(send_at ? { send_at } : {})
             };
             console.log('Update Payload:', JSON.stringify(payload));
 

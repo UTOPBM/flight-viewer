@@ -271,13 +271,20 @@ export default function NewsletterAdminPage() {
 
             try {
                 // 1. Update Campaign Content
+                // Calculate send_at first to include in update (to pass validation)
+                const dateTimeStr = `${scheduleForm.send_date}T${scheduleForm.send_time || '09:00'}:00`;
+                const sendAt = new Date(dateTimeStr).toISOString();
+
                 const updateRes = await fetch('/api/admin/newsletter/campaigns', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: selectedCampaign.id,
+                        name: selectedCampaign.name, // Keep existing name
                         subject: scheduleForm.email_subject,
-                        body: scheduleForm.intro_text // Assuming intro_text is the main body for now, or we append it
+                        body: scheduleForm.intro_text, // Simplified mapping
+                        tags: selectedCampaign.tags,
+                        send_at: sendAt // Include future date to allow update
                     })
                 });
 
@@ -286,11 +293,7 @@ export default function NewsletterAdminPage() {
                     throw new Error(`캠페인 수정 실패: ${errJson.error || updateRes.statusText}`);
                 }
 
-                // 2. Schedule Campaign
-                // Listmonk API requires RFC3339/ISO8601 format (e.g., "2025-12-03T09:00:00Z")
-                const dateTimeStr = `${scheduleForm.send_date}T${scheduleForm.send_time || '09:00'}:00`;
-                const sendAt = new Date(dateTimeStr).toISOString();
-
+                // 2. Schedule Campaign (Status Change)
                 const scheduleRes = await fetch('/api/admin/newsletter/campaigns', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
