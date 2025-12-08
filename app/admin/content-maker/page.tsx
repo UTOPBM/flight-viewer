@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Flight, AirportMapping } from '@/lib/types'
+import { Flight, AirportMapping, Region } from '@/lib/types'
 import FlightList from '@/components/admin/FlightList'
 import ActivityList from '@/components/admin/ActivityList'
+import { DateRange } from 'react-day-picker'
+import DateRangePicker from '@/components/DateRangePicker'
+
+type QuickFilter = 'all' | 'japan' | 'europe' | 'southeast'
 
 interface Product {
     id: number
@@ -20,8 +24,17 @@ interface Product {
 export default function ContentMakerPage() {
     // Data State
     const [flights, setFlights] = useState<Flight[]>([])
+    const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
     const [airportMappings, setAirportMappings] = useState<Record<string, AirportMapping>>({})
     const [products, setProducts] = useState<Product[]>([])
+
+    // Filter State
+    const [region, setRegion] = useState<Region>('all')
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+    const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
+    const [includeWeekend, setIncludeWeekend] = useState<boolean>(true)
+    const [searchQuery, setSearchQuery] = useState<string>('')
 
     // UI State
     const [selectedFlightId, setSelectedFlightId] = useState<number | null>(null)
@@ -40,7 +53,7 @@ export default function ContentMakerPage() {
                     .from('filtered_flights')
                     .select('*')
                     .eq('is_monthly_cheapest', true)
-                    .order('created_at', { ascending: false }) // Newest first
+                    .order('created_at', { ascending: false })
 
                 // 2. Fetch Mappings
                 const { data: mappingsData } = await supabase
@@ -52,11 +65,6 @@ export default function ContentMakerPage() {
                 if (mappingsData) {
                     const map: Record<string, AirportMapping> = {}
                     mappingsData.forEach((m: any) => {
-                        // Map using airport_code as key. 
-                        // Note: The table is city_mappings(airport_code, city_name_ko, ...)
-                        // The FlightTable uses airport_regions table. 
-                        // We should align. Let's use city_mappings as it's what we built for this.
-                        // But FlightList expects AirportMapping type which has { city, country }.
                         map[m.airport_code] = {
                             airport_code: m.airport_code,
                             city: m.city_name_ko,
@@ -74,6 +82,63 @@ export default function ContentMakerPage() {
         initData()
     }, [])
 
+    // Filter Logic
+    useEffect(() => {
+        let filtered = [...flights]
+
+        // 1. Quick Filter (Region/Country)
+        if (quickFilter === 'japan') {
+            filtered = filtered.filter((f) => airportMappings[f.outbound_arrival_airport]?.country === '일본')
+        } else if (quickFilter === 'europe') {
+            filtered = filtered.filter((f) => f.region === '유럽미주')
+        } else if (quickFilter === 'southeast') {
+            filtered = filtered.filter((f) => f.region === '동남아')
+        }
+
+        // 2. Date Range
+        if (dateRange?.from) {
+            filtered = filtered.filter((f) => {
+                const outboundDate = new Date(f.outbound_date)
+                const inboundDate = new Date(f.inbound_date)
+                outboundDate.setHours(0, 0, 0, 0)
+                inboundDate.setHours(0, 0, 0, 0)
+
+                const fromDate = new Date(dateRange.from!)
+                fromDate.setHours(0, 0, 0, 0)
+
+                if (dateRange.to) {
+                    const toDate = new Date(dateRange.to)
+                    toDate.setHours(23, 59, 59, 999)
+                    return outboundDate >= fromDate && inboundDate <= toDate
+                } else {
+                    return outboundDate >= fromDate
+                }
+            })
+        }
+
+        // 3. Search Query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase()
+            filtered = filtered.filter((f) => {
+                const cityName = (airportMappings[f.outbound_arrival_airport]?.city || '').toLowerCase()
+                const airportCode = f.outbound_arrival_airport.toLowerCase()
+                const country = (airportMappings[f.outbound_arrival_airport]?.country || '').toLowerCase()
+                return cityName.includes(query) || airportCode.includes(query) || country.includes(query)
+            })
+        }
+
+        // 4. Weekend Filter
+        const isEuropeAmerica = quickFilter === 'europe' || region === '유럽미주'
+        if (!isEuropeAmerica && !includeWeekend) {
+            filtered = filtered.filter((f) => f.has_weekend === false)
+        }
+
+        // 5. Sort by Price
+        filtered.sort((a, b) => a.price - b.price)
+
+        setFilteredFlights(filtered)
+    }, [flights, quickFilter, dateRange, searchQuery, includeWeekend, airportMappings])
+
     // Fetch Products when Flight Selected
     useEffect(() => {
         if (!selectedFlightId) {
@@ -83,12 +148,11 @@ export default function ContentMakerPage() {
 
         const fetchProducts = async () => {
             setLoadingProducts(true)
-            setSelectedProductIds(new Set()) // Reset selection
+            setSelectedProductIds(new Set())
             try {
                 const flight = flights.find(f => f.id === selectedFlightId)
                 if (!flight) return
 
-                // Find mapped city name
                 const mapping = airportMappings[flight.outbound_arrival_airport]
                 if (!mapping) {
                     console.warn(`No mapping found for ${flight.outbound_arrival_airport}`)
@@ -96,13 +160,12 @@ export default function ContentMakerPage() {
                     return
                 }
 
-                const cityName = mapping.city // e.g., '오사카'
+                const cityName = mapping.city
 
                 const { data } = await supabase
                     .from('affiliate_products')
                     .select('*')
                     .eq('city', cityName)
-                // .order('rating', { ascending: false }) // Optional: sort by rating
 
                 if (data) setProducts(data)
                 else setProducts([])
@@ -131,7 +194,6 @@ export default function ContentMakerPage() {
 
         const selectedProds = products.filter(p => selectedProductIds.has(p.id))
 
-        // Format Text
         const cityName = airportMappings[flight.outbound_arrival_airport]?.city || flight.outbound_arrival_airport
         const dateRange = `${flight.outbound_date} ~ ${flight.inbound_date}`
         const price = parseInt(flight.price.toString()).toLocaleString()
@@ -164,7 +226,6 @@ export default function ContentMakerPage() {
 
     return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden">
-            {/* Notification Toast */}
             {copyNotification && (
                 <div className="fixed top-20 right-8 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-fade-in-down font-bold">
                     {copyNotification}
@@ -172,9 +233,34 @@ export default function ContentMakerPage() {
             )}
 
             {/* Left Panel: Flights (40%) */}
-            <div className="w-2/5 h-full flex flex-col border-r border-gray-200 dark:border-gray-800">
+            <div className="w-2/5 h-full flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                {/* Filter Header */}
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 space-y-3">
+                    {/* Region Buttons */}
+                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <button onClick={() => setQuickFilter('all')} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${quickFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'}`}>전체</button>
+                        <button onClick={() => setQuickFilter('japan')} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${quickFilter === 'japan' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'}`}>🇯🇵 일본</button>
+                        <button onClick={() => setQuickFilter('europe')} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${quickFilter === 'europe' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'}`}>🌍 유럽·미주</button>
+                        <button onClick={() => setQuickFilter('southeast')} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${quickFilter === 'southeast' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'}`}>🌴 동남아</button>
+                    </div>
+
+                    {/* Date & Search */}
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <DateRangePicker dateRange={dateRange} onSelect={setDateRange} />
+                        </div>
+                        <button
+                            onClick={() => setIncludeWeekend(!includeWeekend)}
+                            disabled={quickFilter === 'europe'}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${quickFilter === 'europe' ? 'bg-blue-500 text-white opacity-50 cursor-not-allowed' : includeWeekend ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'}`}
+                        >
+                            {includeWeekend ? '주말 포함' : '평일만'}
+                        </button>
+                    </div>
+                </div>
+
                 <FlightList
-                    flights={flights}
+                    flights={filteredFlights}
                     selectedFlightId={selectedFlightId}
                     onSelectFlight={(f) => setSelectedFlightId(f.id)}
                     airportMappings={airportMappings}
@@ -183,7 +269,6 @@ export default function ContentMakerPage() {
 
             {/* Right Panel: Activities (60%) */}
             <div className="w-3/5 h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-                {/* Action Bar */}
                 <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6">
                     <div className="flex items-center gap-2">
                         <span className="font-bold text-lg">
@@ -194,17 +279,13 @@ export default function ContentMakerPage() {
                         <button
                             onClick={handleCopy}
                             disabled={!selectedFlightId}
-                            className={`px-4 py-2 rounded-lg font-bold text-white transition-all ${selectedFlightId
-                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg'
-                                    : 'bg-gray-300 cursor-not-allowed'
-                                }`}
+                            className={`px-4 py-2 rounded-lg font-bold text-white transition-all ${selectedFlightId ? 'bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg' : 'bg-gray-300 cursor-not-allowed'}`}
                         >
                             📋 텍스트 복사
                         </button>
                     </div>
                 </div>
 
-                {/* Content Area */}
                 <div className="flex-1 overflow-hidden">
                     <ActivityList
                         city={getSelectedCityName() || null}
