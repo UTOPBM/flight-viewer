@@ -30,6 +30,19 @@ export default function FlightList({
         return Math.round(price / 100) * 100
     }
 
+    const getSkyscannerLink = (flight: Flight) => {
+        const formatDate = (dateStr: string) => {
+            return dateStr.slice(2).replace(/-/g, '') // 2025-12-09 -> 251209
+        }
+
+        const origin = flight.outbound_departure_airport.toLowerCase()
+        const dest = flight.outbound_arrival_airport.toLowerCase()
+        const outDate = formatDate(flight.outbound_date)
+        const inDate = formatDate(flight.inbound_date)
+
+        return `https://www.skyscanner.co.kr/transport/flights/${origin}/${dest}/${outDate}/${inDate}/?adultsv2=1&childrenv2=&cabinclass=economy&rtn=1&preferdirects=${flight.is_direct}&outboundaltsenabled=false&inboundaltsenabled=false`
+    }
+
     return (
         <div className="h-full overflow-y-auto bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
@@ -49,9 +62,15 @@ export default function FlightList({
                                 <div className="font-medium text-gray-900 dark:text-gray-100">
                                     {getCityName(flight.outbound_arrival_airport)}
                                 </div>
-                                <div className="text-blue-600 dark:text-blue-400 font-bold">
+                                <a
+                                    href={getSkyscannerLink(flight)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                                >
                                     {formatPrice(flight.price).toLocaleString()}원
-                                </div>
+                                </a>
                             </div>
 
                             <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
