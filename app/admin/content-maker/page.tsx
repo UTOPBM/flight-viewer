@@ -188,6 +188,19 @@ export default function ContentMakerPage() {
         setSelectedProductIds(newSet)
     }
 
+    const getSkyscannerLink = (flight: Flight) => {
+        const formatDate = (dateStr: string) => {
+            return dateStr.slice(2).replace(/-/g, '') // 2025-12-09 -> 251209
+        }
+
+        const origin = flight.outbound_departure_airport.toLowerCase()
+        const dest = flight.outbound_arrival_airport.toLowerCase()
+        const outDate = formatDate(flight.outbound_date)
+        const inDate = formatDate(flight.inbound_date)
+
+        return `https://www.skyscanner.co.kr/transport/flights/${origin}/${dest}/${outDate}/${inDate}/?adultsv2=1&childrenv2=&cabinclass=economy&rtn=1&preferdirects=${flight.is_direct}&outboundaltsenabled=false&inboundaltsenabled=false`
+    }
+
     const handleCopy = () => {
         const flight = flights.find(f => f.id === selectedFlightId)
         if (!flight) return
@@ -196,12 +209,17 @@ export default function ContentMakerPage() {
 
         const cityName = airportMappings[flight.outbound_arrival_airport]?.city || flight.outbound_arrival_airport
         const dateRange = `${flight.outbound_date} ~ ${flight.inbound_date}`
-        const price = parseInt(flight.price.toString()).toLocaleString()
+
+        // Round to nearest 100
+        const rawPrice = flight.price
+        const roundedPrice = Math.round(rawPrice / 100) * 100
+        const priceStr = roundedPrice.toLocaleString()
 
         let text = `✈️ [${cityName}] 항공권 특가\n`
         text += `일정: ${dateRange} (${flight.trip_nights}박)\n`
-        text += `가격: ${price}원~\n`
-        text += `직항여부: ${flight.is_direct ? '직항' : '경유'}\n\n`
+        text += `가격: ${priceStr}원~\n`
+        text += `직항여부: ${flight.is_direct ? '직항' : '경유'}\n`
+        text += `👉 ${getSkyscannerLink(flight)}\n\n`
 
         if (selectedProds.length > 0) {
             text += `🎡 추천 액티비티\n`

@@ -101,46 +101,118 @@ async function scrapeCity(browser, city) {
         await new Promise(r => setTimeout(r, 2000));
 
         const products = await page.evaluate(() => {
-            const results = [];
-            // Broader selectors: check for offers AND products
-            const cards = Array.from(document.querySelectorAll('a[href*="/offers/"], a[href*="/products/"]'));
+            const items = [];
+            // Selectors for product cards - try multiple common patterns
+            const cards = document.querySelectorAll('a[href*="/products/"], a[href*="/offers/"]');
 
-            const seenUrls = new Set();
+            cards.forEach(card => {
+                try {
+                    // 1. Title Extraction
+                    let title = '';
+                    const titleSelectors = [
+                        'div > p:nth-of-type(1) > span',
+                        '.product-title',
+                        '[class*="Title"]',
+                        'h2',
+                        'h3'
+                    ];
+                    for (const sel of titleSelectors) {
+                        const el = card.querySelector(sel);
+                        if (el && el.innerText.trim().length > 0) {
+                            title = el.innerText.trim();
+                            break;
+                        }
+                    }
 
-            for (const card of cards) {
-                // No limit on fetching
+                    // 2. Image Extraction
+                    let image_url = '';
+                    const imgEl = card.querySelector('img');
+                    if (imgEl) {
+                        image_url = imgEl.src || imgEl.getAttribute('data-src') || '';
+                    }
 
-                const url = card.href;
-                const cleanUrl = url.split('?')[0];
+                    // 3. Price Extraction
+                    let price = '0';
+                    const priceSelectors = [
+                        'div > p:nth-of-type(3) > span', // Standard with rating
+                        'div > p:nth-of-type(2) > span', // No rating or different layout
+                        '[class*="price"]',
+                        '[class*="Price"]'
+                    ];
+                    for (const sel of priceSelectors) {
+                        const el = card.querySelector(sel);
+                        if (el && el.innerText.includes('원')) {
+                            price = el.innerText.replace(/[^0-9]/g, '');
+                            break;
+                        }
+                    }
 
-                if (seenUrls.has(cleanUrl)) continue;
+                    // 4. Rating & Review Extraction
+                    let rating = 0;
+                    let review_count = 0;
 
-                // Title
-                const titleEl = card.querySelector('.product-title, [class*="Title"], p > span, .name');
+                    // User feedback: Rating is "4.7" and Review is "(1,210)" in spans.
+                    // Scan all spans for these patterns.
+                    const spans = Array.from(card.querySelectorAll('span'));
+                    for (const span of spans) {
+                        const text = span.innerText.trim();
 
-                // Image
-                const imgEl = card.querySelector('img');
+                        // Rating: matches 4.7
+                        if (!rating && /^\d{1}\.\d{1}$/.test(text)) {
+                            rating = parseFloat(text);
+                            continue;
+                        }
 
-                // Price
-                const priceEl = card.querySelector('[class*="price"], [class*="Price"], strong');
+                        // Review: matches (1,210) or (12)
+                        if (!review_count && /^\([\d,]+\)$/.test(text)) {
+                            review_count = parseInt(text.replace(/[(),]/g, ''));
+                            continue;
+                        }
+                    }
 
-                // Rating
-                const ratingEl = card.querySelector('[class*="rating"]');
-                const reviewCountEl = card.querySelector('[class*="review"], [color*="gray"]');
+                    // Fallback to Star search if pattern not found (older cards?)
+                    if (rating === 0) {
+                        const ratingContainerSelectors = [
+                            'div > p:nth-of-type(2)',
+                            '[class*="rating"]',
+                            '[class*="Rating"]'
+                        ];
 
-                if (titleEl && imgEl) {
-                    results.push({
-                        title: titleEl.innerText.trim(),
-                        original_url: cleanUrl,
-                        image_url: imgEl.src,
-                        price: priceEl ? priceEl.innerText.replace(/[^0-9]/g, '') : '0',
-                        rating: ratingEl ? parseFloat(ratingEl.innerText) : 0,
-                        review_count: reviewCountEl ? parseInt(reviewCountEl.innerText.replace(/[^0-9]/g, '')) || 0 : 0
-                    });
-                    seenUrls.add(cleanUrl);
+                        for (const sel of ratingContainerSelectors) {
+                            const container = card.querySelector(sel);
+                            if (container && container.innerText.includes('★')) {
+                                const text = container.innerText;
+                                const ratingMatch = text.match(/★\s*([\d.]+)/);
+                                const reviewMatch = text.match(/\(([\d,]+)\)/);
+
+                                if (ratingMatch) rating = parseFloat(ratingMatch[1]);
+                                if (reviewMatch) review_count = parseInt(reviewMatch[1].replace(/,/g, ''));
+                                break;
+                            }
+                        }
+                    }
+
+                    // Link
+                    let original_url = card.href;
+                    if (original_url.startsWith('/')) {
+                        original_url = 'https://www.myrealtrip.com' + original_url;
+                    }
+
+                    if (title && price !== '0') {
+                        items.push({
+                            title,
+                            image_url,
+                            price,
+                            rating,
+                            review_count,
+                            original_url
+                        });
+                    }
+                } catch (e) {
+                    // console.error('Error parsing card', e);
                 }
-            }
-            return results;
+            });
+            return items;
         });
 
         return products;
@@ -154,8 +226,15 @@ async function scrapeCity(browser, city) {
 }
 
 async function main() {
-    const cities = parseCities(CITIES_FILE);
-    console.log(`Loaded ${cities.length} active cities.`);
+    let cities = parseCities(CITIES_FILE);
+
+    const targetCity = process.argv[2];
+    if (targetCity) {
+        console.log(`Filtering for city: ${targetCity}`);
+        cities = cities.filter(c => c.name_en.toLowerCase() === targetCity.toLowerCase() || c.name_ko === targetCity);
+    }
+
+    console.log(`Found ${cities.length} cities to scrape.`);
 
     if (cities.length === 0) {
         console.log("No cities to process.");
