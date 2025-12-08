@@ -20,7 +20,10 @@ export default function FlightList({
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr)
-        return `${date.getMonth() + 1}/${date.getDate()}`
+        const day = date.getDate()
+        const month = date.getMonth() + 1
+        const weekDay = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
+        return `${month}/${day}(${weekDay})`
     }
 
     const formatPrice = (price: number) => {
