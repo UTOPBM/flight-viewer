@@ -129,8 +129,14 @@ export default function ContentMakerPage() {
 
         // 4. Weekend Filter
         const isEuropeAmerica = quickFilter === 'europe' || region === '유럽미주'
-        if (!isEuropeAmerica && !includeWeekend) {
-            filtered = filtered.filter((f) => f.has_weekend === false)
+        if (!isEuropeAmerica) {
+            if (includeWeekend) {
+                // Show ONLY flights that include a weekend
+                filtered = filtered.filter((f) => f.has_weekend === true)
+            } else {
+                // Show ONLY flights that do NOT include a weekend (Weekdays only)
+                filtered = filtered.filter((f) => f.has_weekend === false)
+            }
         }
 
         // 5. Sort by Price
@@ -272,7 +278,7 @@ export default function ContentMakerPage() {
                             disabled={quickFilter === 'europe'}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${quickFilter === 'europe' ? 'bg-blue-500 text-white opacity-50 cursor-not-allowed' : includeWeekend ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'}`}
                         >
-                            {includeWeekend ? '주말 포함' : '평일만'}
+                            {includeWeekend ? '주말 껴서' : '평일만'}
                         </button>
                     </div>
                 </div>
