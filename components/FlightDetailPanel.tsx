@@ -217,14 +217,12 @@ export default function FlightDetailPanel({
                     </section>
 
                     {/* Disclosure Text */}
-                    <div className="mt-2 mb-6">
-                        <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-3 border border-blue-100 dark:border-blue-800/30">
-                            <div className="flex gap-2">
-                                <div className="text-blue-500 dark:text-blue-400 shrink-0">ℹ️</div>
-                                <p className="text-xs text-blue-600 dark:text-blue-300 leading-relaxed text-left break-keep">
-                                    마케팅 파트너십을 통해 여행자가 제휴 링크를 통해 구매할 때 소정의 수수료를 제공받습니다.
-                                </p>
-                            </div>
+                    <div className="mt-1 mb-6 px-2">
+                        <div className="flex gap-2 items-start justify-center">
+                            <div className="text-gray-400 dark:text-gray-500 text-[10px] shrink-0 mt-0.5">ℹ️</div>
+                            <p className="text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed text-left break-keep">
+                                항공권은 최저가 그대로 제공되며, 아래의 <strong>여행 필수품 및 액티비티</strong> 구매 시에만 마케팅 파트너십을 통해 소정의 수수료를 제공받습니다.
+                            </p>
                         </div>
                     </div>
 
