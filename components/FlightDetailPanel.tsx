@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Flight, AirportMapping } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
+import { getCityEmoji } from '@/utils/cityEmojis'
 
 interface FlightDetailPanelProps {
     isOpen: boolean
@@ -127,59 +128,59 @@ export default function FlightDetailPanel({
                 className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
             >
-                {/* Header / Sticky CTA */}
-                <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-5 pt-6 pb-4 flex flex-col gap-4">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold dark:text-white leading-tight">
-                                {city} 여행
-                            </h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)} ({flight.trip_nights}박 {days}일)
-                            </p>
+                {/* Header / Main Card */}
+                <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-6 pb-4">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-2xl">{getCityEmoji(city)}</span>
+                                <h2 className="text-2xl font-bold dark:text-white leading-tight">
+                                    {city} 여행
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full w-fit">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>
+                                    {formatDateWithDay(flight.outbound_date)} - {formatDateWithDay(flight.inbound_date)}
+                                </span>
+                                <span className="w-1 h-1 bg-gray-400 rounded-full mx-0.5"></span>
+                                <span>{flight.trip_nights}박 {days}일</span>
+                            </div>
                         </div>
                         <button
                             onClick={onClose}
                             className="p-2 -mr-2 -mt-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
-                            <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-6 h-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-                    <a
-                        href={getSkyscannerUrl(flight)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-5 rounded-2xl flex items-center justify-between transition-all shadow-lg hover:shadow-blue-500/40 hover:-translate-y-0.5"
-                    >
-                        <span>스카이스캐너에서 보기</span>
-                        <span className="text-base">{formatPrice(flight.price)}</span>
-                    </a>
-                </div>
+                    {/* Flight Detail Card */}
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
 
-                {/* Content */}
-                <div className="p-4 space-y-8">
-
-                    {/* Flight Details Section */}
-                    <section>
-                        <h3 className="text-lg font-semibold mb-3 dark:text-gray-200">✈️ 항공권 정보</h3>
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-                            <div className="flex justify-between items-center mb-4">
-                                <div className="text-center w-24">
-                                    <div className="font-bold text-lg dark:text-white">{flight.outbound_departure_airport}</div>
-                                    <div className="text-xs text-gray-500">서울</div>
+                        {/* Route Visualization */}
+                        <div className="p-5 pb-4">
+                            <div className="flex justify-between items-center mb-1">
+                                {/* Departure */}
+                                <div className="text-center w-28">
+                                    <div className="font-bold text-2xl dark:text-white mb-0.5">{flight.outbound_departure_airport}</div>
+                                    <div className="text-xs font-medium text-gray-500 mb-1">서울</div>
+                                    <div className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full inline-block">
+                                        {formatDateWithDay(flight.outbound_date)}
+                                    </div>
                                 </div>
 
-                                {/* Round Trip Arrows - "Stretched Cycle" Look */}
-                                <div className="flex-1 flex flex-col items-center justify-center px-4 gap-1">
-                                    {/* Top Text */}
-                                    <div className="text-[10px] font-bold text-blue-500/80 tracking-wider mb-0.5">
+                                {/* Arrows */}
+                                <div className="flex-1 flex flex-col items-center justify-center px-2 gap-1.5 pt-1">
+                                    <div className="text-[10px] font-bold text-blue-500/80 tracking-wider">
                                         {flight.is_direct ? '직항' : '경유'}
                                     </div>
 
-                                    <div className="w-full relative h-[24px]">
+                                    <div className="w-full relative h-[20px]">
                                         {/* Top Arrow (Right) */}
                                         <div className="absolute top-0 left-0 w-full flex items-center text-gray-300 dark:text-gray-600">
                                             <div className="h-[2px] w-full bg-current relative">
@@ -198,23 +199,47 @@ export default function FlightDetailPanel({
                                         </div>
                                     </div>
 
-                                    {/* Bottom Text */}
-                                    <div className="text-[10px] font-bold text-blue-500/80 tracking-wider mt-0.5">
+                                    <div className="text-[10px] font-bold text-blue-500/80 tracking-wider">
                                         {flight.is_direct ? '직항' : '경유'}
                                     </div>
                                 </div>
 
-                                <div className="text-center w-24">
-                                    <div className="font-bold text-lg dark:text-white">{flight.outbound_arrival_airport}</div>
-                                    <div className="text-xs text-gray-500">{city}</div>
+                                {/* Arrival */}
+                                <div className="text-center w-28">
+                                    <div className="font-bold text-2xl dark:text-white mb-0.5">{flight.outbound_arrival_airport}</div>
+                                    <div className="text-xs font-medium text-gray-500 mb-1">{city}</div>
+                                    <div className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full inline-block">
+                                        {formatDateWithDay(flight.inbound_date)}
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                                <span className="font-bold">왕복 요금</span> (유류할증료/세금 포함)
-                            </div>
                         </div>
-                    </section>
+
+                        {/* Action Button */}
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+                            <a
+                                href={getSkyscannerUrl(flight)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-5 rounded-xl flex items-center justify-between transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 group"
+                            >
+                                <div className="flex flex-col items-start leading-none">
+                                    <span className="text-[10px] opacity-80 font-normal mb-1">왕복 최저가</span>
+                                    <span className="text-lg">{formatPrice(flight.price)}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-sm font-medium">
+                                    스카이스캐너에서 예약하기
+                                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4 space-y-8">
 
                     {/* Disclosure Text */}
                     <div className="mt-1 mb-6 px-4 text-center">
