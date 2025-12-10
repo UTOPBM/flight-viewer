@@ -216,6 +216,18 @@ export default function FlightDetailPanel({
                         </div>
                     </section>
 
+                    {/* Disclosure Text */}
+                    <div className="mt-2 mb-6">
+                        <div className="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-3 border border-blue-100 dark:border-blue-800/30">
+                            <div className="flex gap-2">
+                                <div className="text-blue-500 dark:text-blue-400 shrink-0">ℹ️</div>
+                                <p className="text-xs text-blue-600 dark:text-blue-300 leading-relaxed text-left break-keep">
+                                    마케팅 파트너십을 통해 여행자가 제휴 링크를 통해 구매할 때 소정의 수수료를 제공받습니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Essentials Section */}
                     <section>
                         <h3 className="text-lg font-semibold mb-3 dark:text-gray-200">🎒 여행 필수 준비물</h3>
@@ -310,11 +322,7 @@ export default function FlightDetailPanel({
                         </a>
                     </div>
 
-                    {/* Disclosure Text */}
-                    <div className="mt-4 text-xs text-gray-400 text-center px-4 leading-relaxed break-keep">
-                        다양한 마케팅 파트너십을 통해 여행자가 액티비티를 구매할 때<br />
-                        일정 비율의 수수료를 지급받습니다.
-                    </div>
+
 
                 </div>
             </div>
