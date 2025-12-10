@@ -19,6 +19,7 @@ interface Product {
     rating: number
     review_count: number
     original_url: string
+    partner_url?: string
 }
 
 export default function ContentMakerPage() {
@@ -231,7 +232,7 @@ export default function ContentMakerPage() {
             text += `🎡 추천 액티비티\n`
             selectedProds.forEach(p => {
                 text += `- ${p.title} (⭐${p.rating}) : ${parseInt(p.price).toLocaleString()}원~\n`
-                text += `  👉 ${p.original_url}\n`
+                text += `  👉 ${p.partner_url || p.original_url}\n`
             })
         }
 
