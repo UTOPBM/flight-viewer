@@ -1,14 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Flight, Region, AirportMapping } from '@/lib/types'
 import { DateRange } from 'react-day-picker'
 import DateRangePicker from './DateRangePicker'
+import FlightDetailPanel from './FlightDetailPanel'
 
 type QuickFilter = 'all' | 'japan' | 'europe' | 'southeast'
 
 export default function FlightTable() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
   const [flights, setFlights] = useState<Flight[]>([])
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([])
   const [airportMappings, setAirportMappings] = useState<Record<string, AirportMapping>>({})
@@ -22,6 +28,10 @@ export default function FlightTable() {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
   const [includeWeekend, setIncludeWeekend] = useState<boolean>(true)
 
+  const [selectedFlightDetail, setSelectedFlightDetail] = useState<Flight | null>(null)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+
+  // 초기 데이터 로드
   useEffect(() => {
     fetchData()
   }, [])
@@ -48,6 +58,20 @@ export default function FlightTable() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
+  // URL의 flightId가 있으면 해당 항공권을 찾아 패널 열기 (데이터 로드 후)
+  useEffect(() => {
+    const flightIdStr = searchParams.get('flightId')
+    if (flightIdStr && flights.length > 0) {
+      const flightId = parseInt(flightIdStr)
+      const flight = flights.find((f) => f.id === flightId)
+      if (flight) {
+        setSelectedFlightDetail(flight)
+        setIsPanelOpen(true)
+      }
+    }
+  }, [searchParams, flights])
+
+  // 필터링 및 정렬
   useEffect(() => {
     filterAndSortFlights()
   }, [flights, region, dateRange, sortOrder, searchQuery, quickFilter, includeWeekend])
@@ -93,9 +117,8 @@ export default function FlightTable() {
       filtered = filtered.filter((f) => f.region === region)
     }
 
-    // 빠른 필터 (일본/유럽·미주/동남아)
+    // 빠른 필터
     if (quickFilter === 'japan') {
-      // airport_regions 테이블의 country 정보를 사용
       filtered = filtered.filter((f) => {
         const country = airportMappings[f.outbound_arrival_airport]?.country
         return country === '일본'
@@ -112,7 +135,6 @@ export default function FlightTable() {
         const outboundDate = new Date(f.outbound_date)
         const inboundDate = new Date(f.inbound_date)
 
-        // Set time to 00:00:00 for accurate date comparison
         outboundDate.setHours(0, 0, 0, 0)
         inboundDate.setHours(0, 0, 0, 0)
 
@@ -122,11 +144,8 @@ export default function FlightTable() {
         if (dateRange.to) {
           const toDate = new Date(dateRange.to)
           toDate.setHours(23, 59, 59, 999)
-
-          // Strict filtering: Both outbound and inbound dates must be within the range
           return outboundDate >= fromDate && inboundDate <= toDate
         } else {
-          // If only start date is selected, show flights departing on or after that date
           return outboundDate >= fromDate
         }
       })
@@ -139,12 +158,11 @@ export default function FlightTable() {
         const cityName = getCityName(f.outbound_arrival_airport).toLowerCase()
         const airportCode = f.outbound_arrival_airport.toLowerCase()
         const country = airportMappings[f.outbound_arrival_airport]?.country?.toLowerCase() || ''
-
         return cityName.includes(query) || airportCode.includes(query) || country.includes(query)
       })
     }
 
-    // 주말 포함 필터 (유럽·미주는 항상 주말 포함이므로 필터링 안함)
+    // 주말 포함 필터
     const isEuropeAmerica = quickFilter === 'europe' || region === '유럽미주'
     if (!isEuropeAmerica) {
       filtered = filtered.filter((f) => {
@@ -164,6 +182,25 @@ export default function FlightTable() {
     setFilteredFlights(filtered)
   }
 
+  const handleFlightClick = (flight: Flight) => {
+    setSelectedFlightDetail(flight)
+    setIsPanelOpen(true)
+
+    // URL 업데이트 (flightId 추가)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('flightId', flight.id.toString())
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleClosePanel = () => {
+    setIsPanelOpen(false)
+
+    // URL 업데이트 (flightId 제거)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('flightId')
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
     return `${date.getMonth() + 1}/${date.getDate()}`
@@ -179,7 +216,6 @@ export default function FlightTable() {
     return `${formatDate(dateStr)}(${getDayOfWeek(dateStr)})`
   }
 
-  // 가격 100원 단위로 반올림
   const formatPrice = (price: number) => {
     const rounded = Math.round(price / 100) * 100
     return rounded.toLocaleString() + '원'
@@ -213,23 +249,13 @@ export default function FlightTable() {
 
   const getDestinationColor = (airportCode: string): string => {
     const colors = [
-      'bg-orange-500',
-      'bg-blue-500',
-      'bg-green-500',
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-yellow-500',
-      'bg-indigo-500',
-      'bg-red-500',
-      'bg-teal-500',
-      'bg-cyan-500',
+      'bg-orange-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
+      'bg-yellow-500', 'bg-indigo-500', 'bg-red-500', 'bg-teal-500', 'bg-cyan-500',
     ]
 
-    // 선택된 항공편들의 고유 목적지 리스트
     const selected = flights.filter((f) => selectedFlights.has(f.id))
     const uniqueDestinations = [...new Set(selected.map((f) => f.outbound_arrival_airport))].sort()
 
-    // 현재 목적지의 인덱스를 찾아서 색상 할당
     const index = uniqueDestinations.indexOf(airportCode)
     return colors[index % colors.length]
   }
@@ -263,13 +289,9 @@ export default function FlightTable() {
       return
     }
 
-    // 선택된 항공편 가져오기
     const selected = flights.filter((f) => selectedFlights.has(f.id))
-
-    // 가격순으로 정렬
     selected.sort((a, b) => a.price - b.price)
 
-    // 클립보드 텍스트 생성 (정보 + 링크)
     const lines = selected.map((flight) => {
       const origin = getCityName(flight.outbound_departure_airport)
       const destination = getCityName(flight.outbound_arrival_airport)
@@ -417,9 +439,9 @@ export default function FlightTable() {
           return (
             <div
               key={flight.id}
-              onClick={() => toggleFlightSelection(flight.id)}
+              onClick={() => handleFlightClick(flight)}
               className={`rounded-lg p-4 shadow cursor-pointer transition-colors border ${isSelected
-                ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 border-blue-500'
+                ? 'bg-blue-50 ring-2 ring-blue-500 border-blue-500'
                 : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-700'
                 }`}
             >
@@ -429,7 +451,8 @@ export default function FlightTable() {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => { }}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleFlightSelection(flight.id)}
                     className="h-4 w-4 cursor-pointer mt-1"
                   />
                   <div>
@@ -459,15 +482,9 @@ export default function FlightTable() {
                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                   {formatPrice(flight.price)}
                 </span>
-                <a
-                  href={getSkyscannerUrl(flight)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  검색 →
-                </a>
+                <span className="text-sm text-gray-400">
+                  상세보기 &gt;
+                </span>
               </div>
             </div>
           )
@@ -500,20 +517,24 @@ export default function FlightTable() {
               return (
                 <tr
                   key={flight.id}
-                  onClick={() => toggleFlightSelection(flight.id)}
+                  onClick={() => handleFlightClick(flight)}
                   className={`cursor-pointer transition-colors ${isSelected
-                    ? 'bg-blue-100 dark:bg-blue-900/30'
+                    ? 'bg-blue-50 dark:bg-blue-900/10'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                 >
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => { }}
-                        className="h-4 w-4 cursor-pointer"
-                      />
+                      <div onClick={(e) => {
+                        e.stopPropagation();
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleFlightSelection(flight.id)}
+                          className="h-4 w-4 cursor-pointer"
+                        />
+                      </div>
                       {destCount > 1 && (
                         <span className={`flex items-center justify-center w-5 h-5 rounded-full ${getDestinationColor(flight.outbound_arrival_airport)} text-white text-xs font-bold`}>
                           {destCount}
@@ -536,15 +557,9 @@ export default function FlightTable() {
                     {flight.is_direct ? '✅' : '❌'}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <a
-                      href={getSkyscannerUrl(flight)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                    >
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
                       {formatPrice(flight.price)}
-                    </a>
+                    </span>
                   </td>
                 </tr>
               )
@@ -552,6 +567,17 @@ export default function FlightTable() {
           </tbody>
         </table>
       </div>
+
+      <FlightDetailPanel
+        isOpen={isPanelOpen}
+        onClose={handleClosePanel}
+        flight={selectedFlightDetail}
+        airportMappings={airportMappings}
+        getSkyscannerUrl={getSkyscannerUrl}
+        formatPrice={formatPrice}
+        formatDateWithDay={formatDateWithDay}
+        getCityName={getCityName}
+      />
     </div>
   )
 }
