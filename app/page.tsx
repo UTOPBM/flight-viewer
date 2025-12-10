@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import FlightTable from '@/components/FlightTable'
 import AdBanner from '@/components/AdBanner'
 import FlightHeader from '@/components/FlightHeader'
@@ -50,7 +50,9 @@ export default function HomePage() {
         {/* 상단 광고 */}
         <AdBanner position="banner-top" className="mb-6" />
 
-        <FlightTable />
+        <Suspense fallback={<div className="flex items-center justify-center p-12 text-lg">항공권 데이터 로딩중...</div>}>
+          <FlightTable />
+        </Suspense>
 
         {/* 하단 광고 */}
         <AdBanner position="banner-bottom" className="mt-6" />
