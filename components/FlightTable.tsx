@@ -58,6 +58,30 @@ export default function FlightTable() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
+  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정
+  useEffect(() => {
+    const searchParam = searchParams.get('search')
+    if (searchParam) {
+      setSearchQuery(searchParam)
+    }
+  }, [searchParams])
+
+  // 검색어 변경 시 URL 업데이트
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchQuery) {
+      params.set('search', searchQuery)
+    } else {
+      params.delete('search')
+    }
+
+    // 현재 경로와 다를 때만 replace 실행 (무한 루프 방지)
+    const newPath = `${pathname}?${params.toString()}`
+    if (newPath !== `${pathname}?${searchParams.toString()}`) {
+      router.replace(newPath, { scroll: false })
+    }
+  }, [searchQuery, pathname, router, searchParams])
+
   // URL의 flightId가 있으면 해당 항공권을 찾아 패널 열기 (데이터 로드 후)
   useEffect(() => {
     const flightIdStr = searchParams.get('flightId')
