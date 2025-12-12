@@ -58,13 +58,21 @@ export default function FlightTable() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
-  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정
+  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정 (오토매핑 추가)
   useEffect(() => {
     const searchParam = searchParams.get('search')
     if (searchParam) {
-      setSearchQuery(searchParam)
+      // 공항 코드인지 확인 (대소문자 무시)
+      const upperSearchParam = searchParam.toUpperCase()
+      const airportMapping = airportMappings[upperSearchParam]
+
+      if (airportMapping) {
+        setSearchQuery(airportMapping.city)
+      } else {
+        setSearchQuery(searchParam)
+      }
     }
-  }, [searchParams])
+  }, [searchParams, airportMappings])
 
   // 검색어 변경 시 URL 업데이트
   useEffect(() => {
