@@ -145,7 +145,7 @@ export default function FlightDetailPanel({
                     }`}
             >
                 {/* Header / Main Card */}
-                <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-6 pb-4">
+                <div className="z-10 bg-white dark:bg-gray-900 px-5 pt-6 pb-4">
                     <div className="flex items-start justify-between mb-4">
                         <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5">
