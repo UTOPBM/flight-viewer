@@ -250,27 +250,53 @@ export default function FlightDetailPanel({
 
                     {/* Essentials Section */}
                     <section>
-                        <h3 className="text-lg font-semibold mb-3 dark:text-gray-200">🎒 여행 필수 준비물</h3>
+                        <h3 className="text-lg font-bold mb-3 dark:text-gray-200 flex items-center gap-2">
+                            <span>🎒</span>
+                            <span>여행 필수 준비물</span>
+                        </h3>
                         <div className="grid grid-cols-2 gap-3">
                             <a
-                                href="https://www.myrealtrip.com/"
+                                href="https://3ha.in/r/293861"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-800/50 hover:border-purple-300 transition-colors"
+                                className="group relative block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200"
                             >
-                                <div className="text-2xl mb-1">📶</div>
-                                <div className="font-medium text-purple-900 dark:text-purple-100">eSIM/유심</div>
-                                <div className="text-xs text-purple-600 dark:text-purple-300">로밍보다 저렴하게</div>
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div className="font-bold text-gray-900 dark:text-gray-100 mb-0.5">유심사 eSIM</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">로밍보다 저렴하게</div>
+                                </div>
                             </a>
+
                             <a
-                                href="https://www.myrealtrip.com/"
+                                href="https://3ha.in/r/293862"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-100 dark:border-orange-800/50 hover:border-orange-300 transition-colors"
+                                className="group relative block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200"
                             >
-                                <div className="text-2xl mb-1">🛡️</div>
-                                <div className="font-medium text-orange-900 dark:text-orange-100">여행자 보험</div>
-                                <div className="text-xs text-orange-600 dark:text-orange-300">안전한 여행을 위해</div>
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                    </div>
+                                    <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div className="font-bold text-gray-900 dark:text-gray-100 mb-0.5">클룩 여행자 보험</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">안전한 여행을 위해</div>
+                                </div>
                             </a>
                         </div>
                     </section>
