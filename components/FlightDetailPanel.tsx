@@ -108,6 +108,22 @@ export default function FlightDetailPanel({
         return num.toLocaleString() + '원'
     }
 
+    const [randomQuote, setRandomQuote] = useState('')
+
+    const FOOTER_QUOTES = [
+        "열심히 일한 우리, 이제는 힐링하러 떠날 시간🌿",
+        "가장 완벽한 여행 타이밍은?\n에라 모르겠다 하고 결제했을 때🍉",
+        "'여행 가고 싶다' 병, 더는 약도 없죠.\n그냥 떠나는 게 답입니다.✈️",
+        "쉼 없이 달려온 당신의 캘린더에,\n가장 설레는 빈칸 하나를 선물해요."
+    ]
+
+    useEffect(() => {
+        if (isOpen) {
+            const randomIndex = Math.floor(Math.random() * FOOTER_QUOTES.length)
+            setRandomQuote(FOOTER_QUOTES[randomIndex])
+        }
+    }, [isOpen])
+
     if (!flight) return null
 
     const days = flight.trip_nights + 1
@@ -304,7 +320,10 @@ export default function FlightDetailPanel({
                     {/* Affiliate Products Section (Activities) */}
                     {products.length > 0 ? (
                         <section>
-                            <h3 className="text-lg font-semibold mb-3 dark:text-gray-200">🎟️ {city} 추천 액티비티</h3>
+                            <h3 className="text-lg font-bold mb-3 dark:text-gray-200 flex items-center gap-2">
+                                <span>🎟️</span>
+                                <span>{city} 추천 액티비티</span>
+                            </h3>
                             <div className="space-y-3">
                                 {products.slice(0, visibleItems).map((product) => (
                                     <a
@@ -360,15 +379,78 @@ export default function FlightDetailPanel({
                         </section>
                     )}
 
-                    {/* Footer Ad Area */}
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-center">
-                        <p className="font-bold text-sm mb-1">숙소 예약을 아직 안 하셨나요?</p>
-                        <a href="https://www.agoda.com" target="_blank" rel="noreferrer" className="text-xs underline opacity-90 hover:opacity-100">
-                            {city} 인기 호텔 보러가기 →
-                        </a>
+                    {/* Accommodation Section */}
+                    <section>
+                        <h3 className="text-lg font-bold mb-3 dark:text-gray-200 flex items-center gap-2">
+                            <span>🛏️</span>
+                            <span>여행의 밤, 아늑한 쉼표</span>
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <a
+                                href="https://3ha.in/r/293885"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white hover:shadow-md transition-all duration-200 group border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                            >
+                                <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center">
+                                    <img src="/images/partners/tripcom.png" alt="Trip.com" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">트립닷컴</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">압도적인 호텔 특가</span>
+                                </div>
+                            </a>
+                            <a
+                                href="https://3ha.in/r/293890"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white hover:shadow-md transition-all duration-200 group border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                            >
+                                <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center">
+                                    <img src="/images/partners/agoda.jpeg" alt="Agoda" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">아고다</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">전 세계 최저가 보장</span>
+                                </div>
+                            </a>
+                            <a
+                                href="https://3ha.in/r/293892"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white hover:shadow-md transition-all duration-200 group border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                            >
+                                <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center">
+                                    <img src="/images/partners/myrealtrip.png" alt="MyRealTrip" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">마이리얼트립</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">취향 저격 감성 숙소</span>
+                                </div>
+                            </a>
+                            <a
+                                href="https://3ha.in/r/293900"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white hover:shadow-md transition-all duration-200 group border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                            >
+                                <div className="w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center">
+                                    <img src="/images/partners/yeogi.jpg" alt="YeogiEottae" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">여기어때</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">해외 숙소도 최저가</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+
+                    {/* Footer Quote */}
+                    <div className="mt-12 pb-8 text-center space-y-2">
+                        <p className="text-sm font-medium text-gray-400 dark:text-gray-500 whitespace-pre-line">
+                            {randomQuote}
+                        </p>
                     </div>
-
-
 
                 </div>
             </div>
