@@ -58,11 +58,13 @@ export default function FlightTable() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
-  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정 (오토매핑 추가)
+  const [autoSelectRank, setAutoSelectRank] = useState<number | null>(null)
+
+  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정 (오토매핑 추가) 및 순위/주말 파라미터 확인
   useEffect(() => {
+    // 1. Search Query
     const searchParam = searchParams.get('search')
     if (searchParam) {
-      // 공항 코드인지 확인 (대소문자 무시)
       const upperSearchParam = searchParam.toUpperCase()
       const airportMapping = airportMappings[upperSearchParam]
 
@@ -71,6 +73,19 @@ export default function FlightTable() {
       } else {
         setSearchQuery(searchParam)
       }
+    }
+
+    // 2. Weekend Parameter
+    const weekendParam = searchParams.get('weekend')
+    if (weekendParam === 'false') {
+      setIncludeWeekend(false)
+    }
+
+    // 3. Auto Select Rank (Numeric Keys)
+    const keys = Array.from(searchParams.keys())
+    const rankKey = keys.find(key => /^\d+$/.test(key))
+    if (rankKey) {
+      setAutoSelectRank(parseInt(rankKey))
     }
   }, [searchParams, airportMappings])
 
@@ -93,15 +108,40 @@ export default function FlightTable() {
   // URL의 flightId가 있으면 해당 항공권을 찾아 패널 열기 (데이터 로드 후)
   useEffect(() => {
     const flightIdStr = searchParams.get('flightId')
+
+    // 1. flightId가 명시적으로 있는 경우 (공유 링크 등)
     if (flightIdStr && flights.length > 0) {
       const flightId = parseInt(flightIdStr)
       const flight = flights.find((f) => f.id === flightId)
       if (flight) {
         setSelectedFlightDetail(flight)
         setIsPanelOpen(true)
+        return // flightId가 우선
       }
     }
-  }, [searchParams, flights])
+
+    // 2. 순위 기반 자동 선택 (검색 결과 진입 시)
+    if (autoSelectRank && filteredFlights.length > 0) {
+      const index = autoSelectRank - 1
+      if (index >= 0 && index < filteredFlights.length) {
+        const flight = filteredFlights[index]
+        setSelectedFlightDetail(flight)
+        setIsPanelOpen(true)
+
+        // 중요: 한 번 선택 후에는 URL에서 순위 파라미터를 제거해야 함 (재진입 방지)
+        // 하지만 여기서 바로 replace하면 검색어 등이 날아갈 수 있으므로 handleFlightClick 처럼 처리하거나,
+        // 단순히 state를 null로 초기화하여 재실행을 막음.
+        setAutoSelectRank(null)
+
+        // URL 클린업은 Panel Open 시 handleFlightClick에서 수행됨 (flightId가 추가되므로)
+        // 하지만 여기서는 flightId를 추가하는 로직을 명시적으로 호출해주는 것이 좋음.
+        const params = new URLSearchParams(searchParams.toString())
+        params.set('flightId', flight.id.toString())
+        params.delete(autoSelectRank.toString()) // 숫자 키 제거
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+      }
+    }
+  }, [searchParams, flights, filteredFlights, autoSelectRank, pathname, router])
 
   // 필터링 및 정렬
   useEffect(() => {
