@@ -135,8 +135,9 @@ export default function FlightTable() {
       const index = autoSelectRank - 1
       if (index >= 0 && index < filteredFlights.length) {
         const flight = filteredFlights[index]
-        setSelectedFlightDetail(flight)
-        setIsPanelOpen(true)
+        // Optimistic update removed
+        // setSelectedFlightDetail(flight)
+        // setIsPanelOpen(true)
 
         setAutoSelectRank(null)
 
@@ -265,8 +266,10 @@ export default function FlightTable() {
   const [panelOpenedByHistory, setPanelOpenedByHistory] = useState(false)
 
   const handleFlightClick = (flight: Flight) => {
-    setSelectedFlightDetail(flight)
-    setIsPanelOpen(true)
+    // Optimistic update removed to prevent flicker (Source of Truth is URL)
+    // setSelectedFlightDetail(flight)
+    // setIsPanelOpen(true)
+
     setPanelOpenedByHistory(true) // 내부 탐색으로 열림 표시
 
     // URL 업데이트 (flightId 추가) - PUSH to history so back button works
