@@ -1,16 +1,17 @@
-
+```
 // ... (previous content)
 
 import type { Metadata } from 'next'
 import HomeClient from './HomeClient'
 
 type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata(
-  { searchParams }: Props
+  props: Props
 ): Promise<Metadata> {
+  const searchParams = await props.searchParams
   const search = searchParams.search
   let imageIndex = 1
 
@@ -27,7 +28,7 @@ export async function generateMetadata(
     // User asked for "Randomly appear of 3".
     // If we want random on every load for root, we can use Math.random().
     // But for stable link previews, usually it's better to be consistent or just pick one.
-    // However, if the user just visits the site, maybe they want to see different ones.
+    // However, the user just visits the site, maybe they want to see different ones.
     // To ensure hydration match? No, metadata is head.
     // Let's stick to Hash for search, and Random for root? 
     // Random in generateMetadata might be cached by Next.js if page is static.
@@ -39,11 +40,11 @@ export async function generateMetadata(
 
   return {
     openGraph: {
-      images: [`/images/og/og-${imageIndex}.jpg`],
+      images: [`/ images / og / og - ${ imageIndex }.jpg`],
     },
     twitter: {
       card: 'summary_large_image',
-      images: [`/images/og/og-${imageIndex}.jpg`],
+      images: [`/ images / og / og - ${ imageIndex }.jpg`],
     }
   }
 }
