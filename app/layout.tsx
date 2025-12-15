@@ -53,6 +53,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
+import AnalyticsTracker from '@/components/AnalyticsTracker'
+
 export default function RootLayout({
   children,
 }: {
@@ -61,6 +63,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="bg-white dark:bg-gray-900 text-black dark:text-white">
+        <AnalyticsTracker />
         {children}
       </body>
     </html>
