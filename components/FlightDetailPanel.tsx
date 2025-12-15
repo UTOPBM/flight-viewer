@@ -42,28 +42,38 @@ export default function FlightDetailPanel({
     const [visibleItems, setVisibleItems] = useState(5)
     const panelRef = useRef<HTMLDivElement>(null)
 
-    // Prevent background scrolling when panel is open
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout
+    // Body Scroll Lock with Padding Compensation
+    const [isLocked, setIsLocked] = useState(isOpen)
 
+    // Sync isLocked with isOpen (with delay on close)
+    useEffect(() => {
         if (isOpen) {
-            document.body.style.overflow = 'hidden'
+            setIsLocked(true)
         } else {
-            // Wait for animation to finish before restoring scrollbar (prevents layout shift/shake)
-            timeoutId = setTimeout(() => {
-                document.body.style.overflow = 'unset'
-            }, 300)
-        }
-        return () => {
-            clearTimeout(timeoutId)
-            // Ensure we clean up if component unmounts while open (though usually fine)
-            // But if we unmount, we should probably unset immediately or let the next page handle it.
-            // Safe default: leave it, but strictly speaking if we unmount we should unset.
-            // However, simpler logic for now: just clear timeout.
-            // Actually, if we navigate away, we want scrollbar back.
-            // But `handleClosePanel` keeps us on same page.
+            const timer = setTimeout(() => {
+                setIsLocked(false)
+            }, 300) // Match animation duration
+            return () => clearTimeout(timer)
         }
     }, [isOpen])
+
+    // Apply styles based on isLocked
+    useEffect(() => {
+        if (isLocked) {
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+            if (scrollbarWidth > 0) {
+                document.body.style.paddingRight = `${scrollbarWidth}px`
+            }
+            document.body.style.overflow = 'hidden'
+        }
+
+        return () => {
+            // Cleanup: Reset styles
+            // This runs on unmount OR when isLocked changes to false
+            document.body.style.overflow = ''
+            document.body.style.paddingRight = ''
+        }
+    }, [isLocked])
 
     // Fetch affiliate products when flight changes
     useEffect(() => {
