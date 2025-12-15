@@ -109,39 +109,44 @@ export default function FlightTable() {
   useEffect(() => {
     const flightIdStr = searchParams.get('flightId')
 
-    // 1. flightId가 명시적으로 있는 경우 (공유 링크 등)
+    // 1. flightId가 있는 경우 (패널 열기)
     if (flightIdStr && flights.length > 0) {
       const flightId = parseInt(flightIdStr)
-      const flight = flights.find((f) => f.id === flightId)
-      if (flight) {
-        setSelectedFlightDetail(flight)
+      if (selectedFlightDetail?.id !== flightId) {
+        const flight = flights.find((f) => f.id === flightId)
+        if (flight) {
+          setSelectedFlightDetail(flight)
+          setIsPanelOpen(true)
+          return
+        }
+      } else if (!isPanelOpen) {
         setIsPanelOpen(true)
-        return // flightId가 우선
+        return
       }
     }
+    // 2. flightId가 없는 경우 (패널 닫기 - 뒤로가기 대응)
+    else if (!flightIdStr && isPanelOpen) {
+      setIsPanelOpen(false)
+      setSelectedFlightDetail(null)
+    }
 
-    // 2. 순위 기반 자동 선택 (검색 결과 진입 시)
-    if (autoSelectRank && filteredFlights.length > 0) {
+    // 3. 순위 기반 자동 선택 (검색 결과 진입 시)
+    if (autoSelectRank && filteredFlights.length > 0 && !flightIdStr) {
       const index = autoSelectRank - 1
       if (index >= 0 && index < filteredFlights.length) {
         const flight = filteredFlights[index]
         setSelectedFlightDetail(flight)
         setIsPanelOpen(true)
 
-        // 중요: 한 번 선택 후에는 URL에서 순위 파라미터를 제거해야 함 (재진입 방지)
-        // 하지만 여기서 바로 replace하면 검색어 등이 날아갈 수 있으므로 handleFlightClick 처럼 처리하거나,
-        // 단순히 state를 null로 초기화하여 재실행을 막음.
         setAutoSelectRank(null)
 
-        // URL 클린업은 Panel Open 시 handleFlightClick에서 수행됨 (flightId가 추가되므로)
-        // 하지만 여기서는 flightId를 추가하는 로직을 명시적으로 호출해주는 것이 좋음.
         const params = new URLSearchParams(searchParams.toString())
         params.set('flightId', flight.id.toString())
-        params.delete(autoSelectRank.toString()) // 숫자 키 제거
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+        params.delete(autoSelectRank.toString())
+        router.push(`${pathname}?${params.toString()}`, { scroll: false }) // Use Push for auto-select too
       }
     }
-  }, [searchParams, flights, filteredFlights, autoSelectRank, pathname, router])
+  }, [searchParams, flights, filteredFlights, autoSelectRank, pathname, router, isPanelOpen, selectedFlightDetail])
 
   // 필터링 및 정렬
   useEffect(() => {
@@ -258,19 +263,24 @@ export default function FlightTable() {
     setSelectedFlightDetail(flight)
     setIsPanelOpen(true)
 
-    // URL 업데이트 (flightId 추가)
+    // URL 업데이트 (flightId 추가) - PUSH to history so back button works
     const params = new URLSearchParams(searchParams.toString())
     params.set('flightId', flight.id.toString())
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   const handleClosePanel = () => {
-    setIsPanelOpen(false)
+    // 뒤로가기로 닫기 시도 (히스토리 pop)
+    // 만약 직접 접속 등으로 히스토리가 없다면 replace로 제거해야 함.
+    // 하지만 브라우저 호환성 등을 고려해 가장 확실한 방법은 "URL에서 파라미터 제거"임.
+    // 다만 open시 push했으므로, close시 back()을 호출해야 스택이 꼬이지 않음.
+    router.back()
 
-    // URL 업데이트 (flightId 제거)
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete('flightId')
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    // Fallback: router.back()은 비동기이며 히스토리 상태에 의존함.
+    // 만약 외부 유입이라 뒤로갈 곳이 없다면? -> 이 경우엔 router.back()이 브라우저 밖으로 나갈 수 있음.
+    // 하지만 "리스트 -> 상세" 진입 시엔 확실히 back logic이 맞음.
+    // UI적으로는 닫히는 게 우선이므로 state를 먼저 닫음 (useEffect가 처리하겠지만 즉각 반응 위해)
+    setIsPanelOpen(false)
   }
 
   const formatDate = (dateStr: string) => {
