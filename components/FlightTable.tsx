@@ -293,6 +293,7 @@ export default function FlightTable() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
+    return `${date.getMonth() + 1}/${date.getDate()}`
   }
 
   const getDayOfWeek = (dateStr: string): string => {

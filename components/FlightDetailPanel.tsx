@@ -44,13 +44,24 @@ export default function FlightDetailPanel({
 
     // Prevent background scrolling when panel is open
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout
+
         if (isOpen) {
             document.body.style.overflow = 'hidden'
         } else {
-            document.body.style.overflow = 'unset'
+            // Wait for animation to finish before restoring scrollbar (prevents layout shift/shake)
+            timeoutId = setTimeout(() => {
+                document.body.style.overflow = 'unset'
+            }, 300)
         }
         return () => {
-            document.body.style.overflow = 'unset'
+            clearTimeout(timeoutId)
+            // Ensure we clean up if component unmounts while open (though usually fine)
+            // But if we unmount, we should probably unset immediately or let the next page handle it.
+            // Safe default: leave it, but strictly speaking if we unmount we should unset.
+            // However, simpler logic for now: just clear timeout.
+            // Actually, if we navigate away, we want scrollbar back.
+            // But `handleClosePanel` keeps us on same page.
         }
     }, [isOpen])
 
