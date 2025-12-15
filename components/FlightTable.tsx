@@ -401,7 +401,10 @@ export default function FlightTable() {
       {/* 빠른 필터 버튼 */}
       <div className="mb-4 flex gap-2 overflow-x-auto flex-nowrap pb-2 no-scrollbar">
         <button
-          onClick={() => setQuickFilter('all')}
+          onClick={() => {
+            setQuickFilter('all')
+            setSearchQuery('')
+          }}
           className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'all'
             ? 'bg-blue-500 text-white'
             : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -410,7 +413,10 @@ export default function FlightTable() {
           전체
         </button>
         <button
-          onClick={() => setQuickFilter('japan')}
+          onClick={() => {
+            setQuickFilter('japan')
+            setSearchQuery('')
+          }}
           className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'japan'
             ? 'bg-blue-500 text-white'
             : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -419,7 +425,10 @@ export default function FlightTable() {
           🇯🇵 일본
         </button>
         <button
-          onClick={() => setQuickFilter('europe')}
+          onClick={() => {
+            setQuickFilter('europe')
+            setSearchQuery('')
+          }}
           className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'europe'
             ? 'bg-blue-500 text-white'
             : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -428,7 +437,10 @@ export default function FlightTable() {
           🌍 유럽·미주
         </button>
         <button
-          onClick={() => setQuickFilter('southeast')}
+          onClick={() => {
+            setQuickFilter('southeast')
+            setSearchQuery('')
+          }}
           className={`whitespace-nowrap px-3 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${quickFilter === 'southeast'
             ? 'bg-blue-500 text-white'
             : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'

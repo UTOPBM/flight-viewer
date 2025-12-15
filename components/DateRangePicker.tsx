@@ -72,8 +72,14 @@ export default function DateRangePicker({
         const targetDate = addMonths(new Date(), monthOffset)
         const from = startOfMonth(targetDate)
         const to = endOfMonth(targetDate)
-        setLocalDateRange({ from, to })
+        const newRange = { from, to }
+
+        setLocalDateRange(newRange)
         setDisplayMonth(targetDate)
+
+        // Auto-confirm for presets
+        onSelect(newRange)
+        setIsOpen(false)
     }
 
     return (
