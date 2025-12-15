@@ -143,6 +143,8 @@ export default function FlightTable() {
         const params = new URLSearchParams(searchParams.toString())
         params.set('flightId', flight.id.toString())
         params.delete(autoSelectRank.toString())
+
+        setPanelOpenedByHistory(true) // 자동 선택도 PUSH 하므로 History 취급
         router.push(`${pathname}?${params.toString()}`, { scroll: false }) // Use Push for auto-select too
       }
     }
@@ -259,9 +261,13 @@ export default function FlightTable() {
     setFilteredFlights(filtered)
   }
 
+  // 히스토리 제어용 State
+  const [panelOpenedByHistory, setPanelOpenedByHistory] = useState(false)
+
   const handleFlightClick = (flight: Flight) => {
     setSelectedFlightDetail(flight)
     setIsPanelOpen(true)
+    setPanelOpenedByHistory(true) // 내부 탐색으로 열림 표시
 
     // URL 업데이트 (flightId 추가) - PUSH to history so back button works
     const params = new URLSearchParams(searchParams.toString())
@@ -270,22 +276,23 @@ export default function FlightTable() {
   }
 
   const handleClosePanel = () => {
-    // 뒤로가기로 닫기 시도 (히스토리 pop)
-    // 만약 직접 접속 등으로 히스토리가 없다면 replace로 제거해야 함.
-    // 하지만 브라우저 호환성 등을 고려해 가장 확실한 방법은 "URL에서 파라미터 제거"임.
-    // 다만 open시 push했으므로, close시 back()을 호출해야 스택이 꼬이지 않음.
-    router.back()
-
-    // Fallback: router.back()은 비동기이며 히스토리 상태에 의존함.
-    // 만약 외부 유입이라 뒤로갈 곳이 없다면? -> 이 경우엔 router.back()이 브라우저 밖으로 나갈 수 있음.
-    // 하지만 "리스트 -> 상세" 진입 시엔 확실히 back logic이 맞음.
-    // UI적으로는 닫히는 게 우선이므로 state를 먼저 닫음 (useEffect가 처리하겠지만 즉각 반응 위해)
     setIsPanelOpen(false)
+
+    if (panelOpenedByHistory) {
+      // 내부 탐색으로 열렸다면 back()으로 히스토리 제거
+      router.back()
+      setPanelOpenedByHistory(false)
+    } else {
+      // 외부 접속/공유 링크/뒤로가기 불가능한 경우 replace로 파라미터만 제거
+      // 이렇게 해야 "강제 재오픈" 현상을 막고 리스트로 깔끔하게 돌아감
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('flightId')
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
   }
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return `${date.getMonth() + 1}/${date.getDate()}`
   }
 
   const getDayOfWeek = (dateStr: string): string => {
