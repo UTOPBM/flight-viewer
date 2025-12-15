@@ -53,6 +53,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
+import { Suspense } from 'react'
 import AnalyticsTracker from '@/components/AnalyticsTracker'
 
 export default function RootLayout({
@@ -63,7 +64,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="bg-white dark:bg-gray-900 text-black dark:text-white">
-        <AnalyticsTracker />
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
         {children}
       </body>
     </html>
