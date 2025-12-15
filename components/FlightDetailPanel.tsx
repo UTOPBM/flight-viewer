@@ -339,7 +339,31 @@ export default function FlightDetailPanel({
                     </section>
 
                     {/* Affiliate Products Section (Activities) */}
-                    {products.length > 0 ? (
+                    {loadingProducts ? (
+                        <section>
+                            <h3 className="text-lg font-bold mb-3 dark:text-gray-200 flex items-center gap-2">
+                                <span>🎟️</span>
+                                <span>{city} 추천 액티비티</span>
+                            </h3>
+                            <div className="space-y-3">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="flex gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 animate-pulse">
+                                        <div className="w-24 h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                                        <div className="flex-1 flex flex-col justify-between py-1">
+                                            <div className="space-y-2">
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                            </div>
+                                            <div className="flex justify-between mt-2">
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    ) : products.length > 0 ? (
                         <section>
                             <h3 className="text-lg font-bold mb-3 dark:text-gray-200 flex items-center gap-2">
                                 <span>🎟️</span>
@@ -395,7 +419,7 @@ export default function FlightDetailPanel({
                     ) : (
                         <section className="text-center py-8">
                             <p className="text-gray-500 text-sm">
-                                {loadingProducts ? '추천 상품을 불러오는 중...' : '이 도시에 대한 추천 상품이 곧 업데이트됩니다!'}
+                                이 도시에 대한 추천 상품이 곧 업데이트됩니다!
                             </p>
                         </section>
                     )}
