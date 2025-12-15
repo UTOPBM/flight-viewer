@@ -27,7 +27,6 @@ export default function FlightTable() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
   const [includeWeekend, setIncludeWeekend] = useState<boolean>(true)
-  const [autoSelectRank, setAutoSelectRank] = useState<number | null>(null)
 
   const [selectedFlightDetail, setSelectedFlightDetail] = useState<Flight | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
@@ -59,11 +58,11 @@ export default function FlightTable() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
-  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설 및 필터 설정
+  // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정 (오토매핑 추가)
   useEffect(() => {
-    // 1. 검색어 설정
     const searchParam = searchParams.get('search')
     if (searchParam) {
+      // 공항 코드인지 확인 (대소문자 무시)
       const upperSearchParam = searchParam.toUpperCase()
       const airportMapping = airportMappings[upperSearchParam]
 
@@ -72,31 +71,6 @@ export default function FlightTable() {
       } else {
         setSearchQuery(searchParam)
       }
-    }
-
-    // 2. 주말 포함 필터 설정
-    const weekendParam = searchParams.get('weekend')
-    if (weekendParam !== null) {
-      setIncludeWeekend(weekendParam === 'true')
-    }
-
-    // 3. 순위 자동 선택 (e.g. ?search=kix&1)
-    let rank: number | null = null
-    const rankParam = searchParams.get('rank')
-    if (rankParam) {
-      rank = parseInt(rankParam, 10)
-    } else {
-      // 숫자 키 찾기 (값은 중요하지 않음, 키 자체가 숫자면 됨)
-      for (const key of Array.from(searchParams.keys())) {
-        if (/^\d+$/.test(key)) {
-          rank = parseInt(key, 10)
-          break
-        }
-      }
-    }
-
-    if (rank !== null && rank > 0) {
-      setAutoSelectRank(rank)
     }
   }, [searchParams, airportMappings])
 
@@ -116,22 +90,9 @@ export default function FlightTable() {
     }
   }, [searchQuery, pathname, router, searchParams])
 
-  // 필터링 된 결과가 있고, 자동 선택 랭크가 설정되어 있으면 해당 항공권 선택
-  useEffect(() => {
-    if (autoSelectRank !== null && filteredFlights.length >= autoSelectRank) {
-      const targetFlight = filteredFlights[autoSelectRank - 1]
-      if (targetFlight) {
-        handleFlightClick(targetFlight)
-        setAutoSelectRank(null) // 한 번 실행 후 초기화
-      }
-    }
-  }, [filteredFlights, autoSelectRank])
-
   // URL의 flightId가 있으면 해당 항공권을 찾아 패널 열기 (데이터 로드 후)
   useEffect(() => {
     const flightIdStr = searchParams.get('flightId')
-    // autoSelectRank가 진행 중일 때는 flightId 체크를 건너뛸 수도 있지만,
-    // handleFlightClick 내부에서 flightId를 set하므로 충돌하지 않음.
     if (flightIdStr && flights.length > 0) {
       const flightId = parseInt(flightIdStr)
       const flight = flights.find((f) => f.id === flightId)
@@ -257,18 +218,9 @@ export default function FlightTable() {
     setSelectedFlightDetail(flight)
     setIsPanelOpen(true)
 
-    // URL 업데이트 (flightId 추가 및 일회성 파라미터 제거)
+    // URL 업데이트 (flightId 추가)
     const params = new URLSearchParams(searchParams.toString())
     params.set('flightId', flight.id.toString())
-
-    // rank 또는 숫자 파라미터(예: &1) 제거
-    params.delete('rank')
-    Array.from(params.keys()).forEach(key => {
-      if (/^\d+$/.test(key)) {
-        params.delete(key)
-      }
-    })
-
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 

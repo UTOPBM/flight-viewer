@@ -27,7 +27,7 @@ export default function FlightHeader() {
                 >
                     ✈️
                 </span>
-                <span>우리들의 여행이 쉬워졌으면 좋겠어</span>
+                <span>콘센트온</span>
 
                 {/* Flying Plane State */}
                 {isFlying && (
