@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://flight-viewer.pages.dev'),
@@ -47,10 +48,10 @@ export const metadata: Metadata = {
   },
 
   verification: {
-    // Google Search Console 등록 후 추가
-    // google: 'your-verification-code',
-    // Naver Search Advisor 등록 후 추가
-    // naver: 'your-naver-verification-code',
+    google: 'bidMm-QLRIaEr63L5QotSDNGLp5AfYKVCTKjomEKxgE',
+    other: {
+      'naver-site-verification': '86d6560131bfc300c0aa61efe6a5ab1b1e7bc7c1',
+    },
   },
 }
 
@@ -69,6 +70,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className="bg-white dark:bg-gray-900 text-black dark:text-white">
         {children}
+        <GoogleAnalytics gaId="G-4X7VNFGK3F" />
       </body>
     </html>
   )

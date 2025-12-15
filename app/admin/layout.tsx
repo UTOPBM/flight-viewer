@@ -57,12 +57,6 @@ export default function AdminLayout({
                                     하단 배너 광고 관리
                                 </Link>
                                 <Link
-                                    href="/admin/newsletter"
-                                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                                >
-                                    뉴스레터 관리
-                                </Link>
-                                <Link
                                     href="/admin/content-maker"
                                     className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                                 >
