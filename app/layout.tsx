@@ -17,21 +17,14 @@ export const metadata: Metadata = {
     siteName: '우리들의 여행이 쉬워졌으면 좋겠어',
     title: '우리들의 여행이 쉬워졌으면 좋겠어 - 최저가 항공권 검색',
     description: '일본, 유럽, 동남아 최저가 항공권을 한눈에! 월별 최저가 자동 업데이트',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: '우리들의 여행이 쉬워졌으면 좋겠어',
-      },
-    ],
+    // Images are handled dynamically in page.tsx
   },
 
   twitter: {
     card: 'summary_large_image',
     title: '우리들의 여행이 쉬워졌으면 좋겠어',
     description: '일본, 유럽, 동남아 최저가 항공권 검색',
-    images: ['/og-image.jpg'],
+    // Images are handled dynamically in page.tsx
   },
 
   robots: {
