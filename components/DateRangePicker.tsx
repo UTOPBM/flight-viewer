@@ -17,18 +17,28 @@ export default function DateRangePicker({
     onSelect,
     className,
 }: DateRangePickerProps) {
+    // Calculate base date: if today > 15th, start from next month
+    const getBaseDate = React.useCallback(() => {
+        const now = new Date()
+        if (now.getDate() > 15) {
+            return startOfMonth(addMonths(now, 1))
+        }
+        return startOfMonth(now)
+    }, [])
+
     const [isOpen, setIsOpen] = React.useState(false)
     const [localDateRange, setLocalDateRange] = React.useState<DateRange | undefined>(dateRange)
-    const [displayMonth, setDisplayMonth] = React.useState<Date>(dateRange?.from || new Date(2025, 11))
+    // Use baseDate for default display
+    const [displayMonth, setDisplayMonth] = React.useState<Date>(dateRange?.from || getBaseDate())
     const containerRef = React.useRef<HTMLDivElement>(null)
 
     // Sync local state when prop changes or modal opens
     React.useEffect(() => {
         if (isOpen) {
             setLocalDateRange(dateRange)
-            setDisplayMonth(dateRange?.from || new Date(2025, 11))
+            setDisplayMonth(dateRange?.from || getBaseDate())
         }
-    }, [isOpen, dateRange])
+    }, [isOpen, dateRange, getBaseDate])
 
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -69,7 +79,9 @@ export default function DateRangePicker({
     }
 
     const selectMonth = (monthOffset: number) => {
-        const targetDate = addMonths(new Date(), monthOffset)
+        // Use baseDate + offset
+        const baseDate = getBaseDate()
+        const targetDate = addMonths(baseDate, monthOffset)
         const from = startOfMonth(targetDate)
         const to = endOfMonth(targetDate)
         const newRange = { from, to }
@@ -106,26 +118,22 @@ export default function DateRangePicker({
 
             {isOpen && (
                 <div className="absolute z-50 mt-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+
+
                     {/* 월 단위 빠른 선택 */}
                     <div className="mb-3 flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => selectMonth(0)}
-                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
-                        >
-                            이번 달
-                        </button>
-                        <button
-                            onClick={() => selectMonth(1)}
-                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
-                        >
-                            다음 달
-                        </button>
-                        <button
-                            onClick={() => selectMonth(2)}
-                            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
-                        >
-                            2개월 후
-                        </button>
+                        {[0, 1, 2].map((offset) => {
+                            const date = addMonths(getBaseDate(), offset)
+                            return (
+                                <button
+                                    key={offset}
+                                    onClick={() => selectMonth(offset)}
+                                    className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                                >
+                                    {format(date, 'M월')}
+                                </button>
+                            )
+                        })}
                     </div>
                     <DayPicker
                         mode="range"
