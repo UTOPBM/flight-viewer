@@ -145,8 +145,8 @@ export default function FlightTable() {
         params.set('flightId', flight.id.toString())
         params.delete(autoSelectRank.toString())
 
-        setPanelOpenedByHistory(true) // 자동 선택도 PUSH 하므로 History 취급
-        router.push(`${pathname}?${params.toString()}`, { scroll: false }) // Use Push for auto-select too
+        // setPanelOpenedByHistory(true) // History push is not needed for auto-select
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false }) // Use Replace for auto-select to avoid history loop
       }
     }
   }, [searchParams, flights, filteredFlights, autoSelectRank, pathname, router, isPanelOpen, selectedFlightDetail])
