@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Flight, Region, AirportMapping } from '@/lib/types'
@@ -60,10 +60,11 @@ export default function FlightTable() {
   }, [])
 
   const [autoSelectRank, setAutoSelectRank] = useState<number | null>(null)
+  const isInitializedRef = React.useRef(false)
 
   // 초기 로드 시 URL 쿼리 파라미터에서 검색어 설정 (오토매핑 추가) 및 순위/주말 파라미터 확인
   useEffect(() => {
-    // 1. Search Query
+    // 검색어는 항상 동기화 (공유 링크 대응)
     const searchParam = searchParams.get('search')
     if (searchParam) {
       const upperSearchParam = searchParam.toUpperCase()
@@ -76,31 +77,31 @@ export default function FlightTable() {
       }
     }
 
-    // 2. Weekend Parameter (초기 로드 시에만 적용)
-    const weekendParam = searchParams.get('weekend')
-    if (weekendParam === 'false') {
-      setIncludeWeekend(false)
-    } else if (weekendParam === 'true') {
-      setIncludeWeekend(true)
-    }
-    // weekendParam이 없으면 현재 상태 유지
+    // 최초 로드 시에만 weekend, month, autoSelectRank 초기화
+    if (!isInitializedRef.current && Object.keys(airportMappings).length > 0) {
+      isInitializedRef.current = true
 
-    // 3. Month Parameter
-    const monthParam = searchParams.get('month')
-    if (monthParam) {
-      const month = parseInt(monthParam)
-      if (month >= 1 && month <= 12) {
-        setMonthFilter(month)
+      // Weekend Parameter
+      const weekendParam = searchParams.get('weekend')
+      if (weekendParam === 'false') {
+        setIncludeWeekend(false)
       }
-    } else {
-      setMonthFilter(null)
-    }
 
-    // 4. Auto Select Rank (Numeric Keys)
-    const keys = Array.from(searchParams.keys())
-    const rankKey = keys.find(key => /^\d+$/.test(key))
-    if (rankKey) {
-      setAutoSelectRank(parseInt(rankKey))
+      // Month Parameter
+      const monthParam = searchParams.get('month')
+      if (monthParam) {
+        const month = parseInt(monthParam)
+        if (month >= 1 && month <= 12) {
+          setMonthFilter(month)
+        }
+      }
+
+      // Auto Select Rank (Numeric Keys)
+      const keys = Array.from(searchParams.keys())
+      const rankKey = keys.find(key => /^\d+$/.test(key))
+      if (rankKey) {
+        setAutoSelectRank(parseInt(rankKey))
+      }
     }
   }, [searchParams, airportMappings])
 
