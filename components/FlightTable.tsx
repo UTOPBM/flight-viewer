@@ -515,7 +515,16 @@ export default function FlightTable() {
           <label className="mb-1 md:mb-2 block text-sm font-medium">여행 기간</label>
           <DateRangePicker
             dateRange={dateRange}
-            onSelect={setDateRange}
+            onSelect={(range) => {
+              setDateRange(range)
+              // 날짜 범위 선택 시 월 필터 해제 및 URL에서 month 파라미터 제거
+              if (range && monthFilter !== null) {
+                setMonthFilter(null)
+                const params = new URLSearchParams(searchParams.toString())
+                params.delete('month')
+                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+              }
+            }}
           />
         </div>
 
