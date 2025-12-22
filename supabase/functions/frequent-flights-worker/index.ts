@@ -48,29 +48,47 @@ Deno.serve(async (req) => {
         }
         console.log(`📅 Target Months: ${monthsToSearch.join(', ')}`)
 
-        // 3. Search and Collect Data
-        let totalSaved = 0
-
+        // 3. Search and Collect Data (Parallel Processing)
+        const allSearchTasks = []
         for (const city of cityCodes) {
             for (const month of monthsToSearch) {
-                try {
-                    console.log(`🔎 Searching ${city} for ${month}...`)
-                    const flights = await searchFlights(city, month)
+                allSearchTasks.push({ city, month })
+            }
+        }
 
+        console.log(`🚀 Starting processing for ${allSearchTasks.length} search tasks...`)
+
+        let totalSaved = 0
+        const BATCH_SIZE = 4 // Concurrency limit (Safe under 5 req/s)
+
+        for (let i = 0; i < allSearchTasks.length; i += BATCH_SIZE) {
+            const batch = allSearchTasks.slice(i, i + BATCH_SIZE)
+            console.log(`📦 Processing Batch ${i / BATCH_SIZE + 1}/${Math.ceil(allSearchTasks.length / BATCH_SIZE)} (${batch.length} tasks)...`)
+
+            const results = await Promise.allSettled(
+                batch.map(async (task) => {
+                    console.log(`🔍 Searching ${task.city} for ${task.month}...`)
+                    const flights = await searchFlights(task.city, task.month)
                     if (flights.length > 0) {
-                        const savedCount = await saveFlights(flights, city)
-                        totalSaved += savedCount
-                        console.log(`✅ ${city} (${month}): Saved ${savedCount} flights`)
-                    } else {
-                        console.log(`⚠️ ${city} (${month}): No flights found`)
+                        const saved = await saveFlights(flights, task.city)
+                        return saved
                     }
+                    return 0
+                })
+            )
 
-                    // Rate limiting (simple)
-                    await new Promise(resolve => setTimeout(resolve, 1000))
-
-                } catch (e) {
-                    console.error(`❌ Error processing ${city} for ${month}:`, e)
+            for (const res of results) {
+                if (res.status === 'fulfilled') {
+                    totalSaved += res.value
+                } else {
+                    console.error(`❌ Task failed:`, res.reason)
                 }
+            }
+
+            // Rate limiting wait
+            if (i + BATCH_SIZE < allSearchTasks.length) {
+                console.log("⏳ Waiting 1.5s for rate limit...")
+                await new Promise(resolve => setTimeout(resolve, 1500))
             }
         }
 

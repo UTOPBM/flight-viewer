@@ -27,6 +27,7 @@ export default function FlightTable() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
   const [includeWeekend, setIncludeWeekend] = useState<boolean>(true)
+  const [monthFilter, setMonthFilter] = useState<number | null>(null)
 
   const [selectedFlightDetail, setSelectedFlightDetail] = useState<Flight | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
@@ -81,7 +82,18 @@ export default function FlightTable() {
       setIncludeWeekend(false)
     }
 
-    // 3. Auto Select Rank (Numeric Keys)
+    // 3. Month Parameter
+    const monthParam = searchParams.get('month')
+    if (monthParam) {
+      const month = parseInt(monthParam)
+      if (month >= 1 && month <= 12) {
+        setMonthFilter(month)
+      }
+    } else {
+      setMonthFilter(null)
+    }
+
+    // 4. Auto Select Rank (Numeric Keys)
     const keys = Array.from(searchParams.keys())
     const rankKey = keys.find(key => /^\d+$/.test(key))
     if (rankKey) {
@@ -154,7 +166,7 @@ export default function FlightTable() {
   // 필터링 및 정렬
   useEffect(() => {
     filterAndSortFlights()
-  }, [flights, region, dateRange, sortOrder, searchQuery, quickFilter, includeWeekend])
+  }, [flights, region, dateRange, sortOrder, searchQuery, quickFilter, includeWeekend, monthFilter])
 
   const fetchData = async () => {
     setLoading(true)
@@ -239,6 +251,14 @@ export default function FlightTable() {
         const airportCode = f.outbound_arrival_airport.toLowerCase()
         const country = airportMappings[f.outbound_arrival_airport]?.country?.toLowerCase() || ''
         return cityName.includes(query) || airportCode.includes(query) || country.includes(query)
+      })
+    }
+
+    // 월 필터
+    if (monthFilter !== null) {
+      filtered = filtered.filter((f) => {
+        const outboundMonth = new Date(f.outbound_date).getMonth() + 1
+        return outboundMonth === monthFilter
       })
     }
 
