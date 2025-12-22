@@ -76,11 +76,14 @@ export default function FlightTable() {
       }
     }
 
-    // 2. Weekend Parameter
+    // 2. Weekend Parameter (초기 로드 시에만 적용)
     const weekendParam = searchParams.get('weekend')
     if (weekendParam === 'false') {
       setIncludeWeekend(false)
+    } else if (weekendParam === 'true') {
+      setIncludeWeekend(true)
     }
+    // weekendParam이 없으면 현재 상태 유지
 
     // 3. Month Parameter
     const monthParam = searchParams.get('month')
